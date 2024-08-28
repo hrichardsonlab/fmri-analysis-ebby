@@ -78,13 +78,33 @@ else
 	echo
 	echo "copying scripts and data files to project directory"
 	echo
-
-	cp -r ${dataDir}/scripts/. ${proj}/scripts
-	cp -r ${dataDir}/subj_lists/${study}/. ${proj}/files/subj_lists
-	cp -r ${dataDir}/event_files/${study}/. ${proj}/files/event_files
-	cp -r ${dataDir}/contrast_files/${study}/. ${proj}/files/contrast_files
-	cp -r ${dataDir}/ROI_timecourses/${study}/. ${proj}/files/ROI_timecourses
 	
+	# some studies won't have all these files so (where relevant) check that directory exists first befoe trying to copy to project folder
+	cp -r ${dataDir}/scripts/. ${proj}/scripts
+	
+	# subj lists
+	if [ -d "${dataDir}/subj_lists/${study}" ]
+	then
+		cp -r ${dataDir}/subj_lists/${study}/. ${proj}/files/subj_lists
+	fi
+	# event files
+	if [ -d "${dataDir}/event_files/${study}" ]
+	then
+		cp -r ${dataDir}/event_files/${study}/. ${proj}/files/event_files
+	fi
+	
+	# contrast files
+	if [ -d "${dataDir}/contrast_files/${study}" ]
+	then
+		cp -r ${dataDir}/contrast_files/${study}/. ${proj}/files/contrast_files
+	fi
+	
+	# ROI timecourses
+	if [ -d "${dataDir}/ROI_timecourses/${study}" ]
+	then
+		cp -r ${dataDir}/ROI_timecourses/${study}/. ${proj}/files/ROI_timecourses
+	fi
+
 	# copy example config file as template with motion thresholds that were already applied to data
 	cp -r ${dataDir}/config_files/config-study_template.tsv ${proj}
 fi

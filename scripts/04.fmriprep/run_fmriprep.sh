@@ -1,10 +1,10 @@
 #!/bin/bash
 
 ################################################################################
-# RUN FMRIPREP ON BIDS DATA ALREADY RUN THROUGH FREESURFER
+# RUN FMRIPREP ON BIDS DATA
 #
 # The fMRIPrep singularity was installed using the following code:
-# 	SINGULARITY_TMPDIR=/EBC/processing SINGULARITY_CACHEDIR=/EBC/processing singularity build /EBC/processing/singularity_images/fmriprep-24.0.0.simg docker://nipreps/fmriprep:24.0.0
+# 	SINGULARITY_TMPDIR=/RichardsonLab/processing SINGULARITY_CACHEDIR=/RichardsonLab/processing sudo singularity build /RichardsonLab/processing/singularity_images/fmriprep-24.0.0.simg docker://nipreps/fmriprep:24.0.0 
 #
 ################################################################################
 
@@ -16,16 +16,16 @@ Usage() {
 	echo "./run_fmriprep.sh <list of subjects>"
 	echo
 	echo "Example:"
-	echo "./run_fmriprep.sh TEBC-5y_subjs.txt"
+	echo "./run_fmriprep.sh KMVPA_subjs.txt"
 	echo
-	echo "TEBC-5y_subjs.txt is a file containing the participants to run fMRIPrep on:"
+	echo "KMVPA_subjs.txt is a file containing the participants to run fMRIPrep on:"
 	echo "001"
 	echo "002"
 	echo "..."
 	echo
 	echo
-	echo "This script must be run within the /EBC/ directory on the server due to space requirements."
-	echo "The script will terminiate if run outside of the /EBC/ directory."
+	echo "This script must be run within the /RichardsonLab/ directory on the server due to space requirements."
+	echo "The script will terminiate if run outside of the /RichardsonLab/ directory."
 	echo
 	echo "Script created by Manuel Blesa & Melissa Thye"
 	echo
@@ -33,8 +33,8 @@ Usage() {
 }
 [ "$1" = "" ] && Usage
 
-# if the script is run outside of the EBC directory (e.g., in home directory where space is limited), terminate the script and show usage documentation
-if [[ ! "$PWD" =~ "/EBC/" ]]
+# if the script is run outside of the RichardsonLab directory (e.g., in home directory where space is limited), terminate the script and show usage documentation
+if [[ ! "$PWD" =~ "/RichardsonLab/" ]]; 
 then Usage
 fi
 
@@ -42,35 +42,24 @@ fi
 projDir=`cat ../../PATHS.txt`
 singularityDir="${projDir}/singularity_images"
 
-# convert the singularity image to a sandbox if it doesn't already exist to avoid having to rebuild on each run
-if [ ! -d ${singularityDir}/fmriprep_sandbox ]
-then
-	singularity build --sandbox ${singularityDir}/fmriprep_sandbox ${singularityDir}/fmriprep-24.0.0.simg
-fi
-
 # define subjects from text document
 subjs=$(cat $1) 
 
-# extract sample from list of subjects filename (i.e., are these pilot or HV subjs)
-sample=` basename $1 | cut -d '-' -f 3 | cut -d '.' -f 1 `
-cohort=` basename $1 | cut -d '_' -f 1 `
+# extract study name from list of subjects filename
+study=` basename $1 | cut -d '_' -f 1 `
 
 # define data directories depending on sample information
-if [[ ${sample} == 'pilot' ]]
-then
-	bidsDir="/EBC/preprocessedData/${cohort}/BIDs_data/pilot"
-	derivDir="/EBC/preprocessedData/${cohort}/derivatives/pilot"
-elif [[ ${sample} == 'HV' ]]
-then
-	bidsDir="/EBC/preprocessedData/${cohort}-adultpilot/BIDs_data"
-	derivDir="/EBC/preprocessedData/${cohort}-adultpilot/derivatives"
-else
-	bidsDir="/EBC/preprocessedData/${cohort}/BIDs_data"
-	derivDir="/EBC/preprocessedData/${cohort}/derivatives"
+bidsDir="/RichardsonLab/preprocessedData/${study}"
+derivDir="${bidsDir}/derivatives"
+
+# create derivatives directory if it doesn't exist
+if [ ! -d ${derivDir} ]
+then 
+	mkdir -p ${derivDir}
 fi
 
 # export freesurfer license file location
-export license=/EBC/local/infantFS/freesurfer/license.txt
+export license=/RichardsonLab/processing/tools/license.txt
 
 # change the location of the singularity cache ($HOME/.singularity/cache by default, but limited space in this directory)
 export SINGULARITY_TMPDIR=${singularityDir}
@@ -93,10 +82,13 @@ do
 	echo
 	echo "Running fMRIprep for sub-${NAME}"
 	echo
+	
+	# make output subject derivatives directory
+	mkdir -p ${derivDir}/sub-${NAME}
 
 	# run singularity
-	singularity run -C -B /EBC:/EBC,${singularityDir}:/opt/templateflow	\
-	${singularityDir}/fmriprep_sandbox  								\
+	singularity run -B /RichardsonLab:/RichardsonLab,${singularityDir}:/opt/templateflow \
+	${singularityDir}/fmriprep-24.0.0.simg  							\
 	${bidsDir} ${derivDir}												\
 	participant															\
 	--participant-label ${NAME}											\
@@ -107,7 +99,7 @@ do
 	--ignore slicetiming												\
 	--fd-spike-threshold 1												\
 	--dvars-spike-threshold 1.5											\
-	--output-space MNI152NLin2009cAsym:res-2							\
+	--output-space MNI152NLin2009cAsym:res-2 T1w						\
 	--derivatives ${derivDir}											\
 	--stop-on-first-crash												\
 	-w ${singularityDir}												\

@@ -1,6 +1,6 @@
-sharedDir	/EBC/processing
-bidsDir	/EBC/preprocessedData/TEBC-5y/BIDs_data
-derivDir	/EBC/preprocessedData/TEBC-5y/derivatives
+sharedDir	/RichardsonLab/processing
+bidsDir	
+derivDir	
 resultsDir	
 resampleDir	
 task	
@@ -24,9 +24,9 @@ contrast
 timecourses	
 regressors		
 template	MNI152NLin2009cAsym_res-02_T1w
-search_spaces		
+search_spaces	
 match_events	
 top_nvox		
-mask		
+mask	
 extract	
 overwrite	no

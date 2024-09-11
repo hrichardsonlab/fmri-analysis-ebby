@@ -50,7 +50,7 @@ subjs=$(cat $1)
 # extract study name from list of subjects filename
 study=` basename $1 | cut -d '_' -f 1 `
 
-# define data directories depending on sample information
+# define data directories depending on study information
 bidsDir="/RichardsonLab/preprocessedData/${study}"
 derivDir="${bidsDir}/derivatives"
 

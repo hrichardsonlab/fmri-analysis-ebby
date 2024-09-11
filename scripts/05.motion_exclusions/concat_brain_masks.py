@@ -11,26 +11,26 @@ import glob
 # define mask concatenation function
 def concat_masks(derivDir, sub, ses): 
     # print current subject
-    print('concatenating BOLD masks for sub-{}'.format(sub))
+    print('concatenating BOLD masks for {}'.format(sub))
     
     # define output filename and path, depending on whether session information is in BIDS directory/file names
     if ses != 'no':
         print('Session information provided. Assuming data are organized into session folders.')
         
         # define path to inputs (subjects preprocessed functional data)
-        subDir = op.join(derivDir, 'sub-{}'.format(sub), 'ses-{}'.format(ses), 'func')
-        concat_img_fname = '{}/sub-{}_ses-{}_space-MNI152NLin2009cAsym_res-2_desc-brain_mask_allruns-BOLDmask.nii.gz'.format(subDir, sub, ses)
+        subDir = op.join(derivDir, '{}'.format(sub), 'ses-{}'.format(ses), 'func')
+        concat_img_fname = '{}/{}_ses-{}_space-MNI152NLin2009cAsym_res-2_desc-brain_mask_allruns-BOLDmask.nii.gz'.format(subDir, sub, ses)
     else: # if session was 'no'
         # define path to inputs (subjects preprocessed functional data)
-        subDir = op.join(derivDir, 'sub-{}'.format(sub), 'func')
-        concat_img_fname = '{}/sub-{}_MNI152NLin2009cAsym_res-2_desc-brain_mask_allruns-BOLDmask.nii.gz'.format(subDir, sub)
+        subDir = op.join(derivDir, '{}'.format(sub), 'func')
+        concat_img_fname = '{}/{}_space-MNI152NLin2009cAsym_res-2_desc-brain_mask_allruns-BOLDmask.nii.gz'.format(subDir, sub)
     
     # identify all mask files (there should be 1 per functional run)
     maskfiles = glob.glob(op.join(subDir, '*MNI152NLin2009cAsym_res-2_desc-brain_mask.nii.gz'))  
 
     # if no mask files were found
     if len(maskfiles) == 0:
-        print('No brain masks found for sub-{}'.format(sub))
+        print('No brain masks found for {}'.format(sub))
     # if mask files were found
     else:
         basemask = maskfiles[0] # take the first mask file as the base image

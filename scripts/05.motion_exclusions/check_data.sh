@@ -22,16 +22,16 @@ Usage() {
 	echo "./check_data.sh <configuration file name> <list of subjects>"
 	echo
 	echo "Example:"
-	echo "./check_data.sh config-pixar_mind-body.tsv TEBC-5y_subjs.txt"
+	echo "./check_data.sh config-pixar_mind-body.tsv KMVPA_subjs.txt"
 	echo
-	echo "TEBC-5y_subjs.txt is a file containing the participants to check:"
+	echo "KMVPA_subjs.txt is a file containing the participants to check:"
 	echo "001"
 	echo "002"
 	echo "..."
 	echo
 	echo
-	echo "This script must be run within the /EBC/ directory on the server due to space requirements."
-	echo "The script will terminiate if run outside of the /EBC/ directory."
+	echo "This script must be run within the /RichardsonLab/ directory on the server due to space requirements."
+	echo "The script will terminiate if run outside of the /RichardsonLab/ directory."
 	echo
 	echo "Script created by Melissa Thye"
 	echo
@@ -39,8 +39,8 @@ Usage() {
 }
 [ "$1" = "" ] | [ "$2" = "" ] && Usage
 
-# if the script is run outside of the EBC directory (e.g., in home directory where space is limited), terminate the script and show usage documentation
-if [[ ! "$PWD" =~ "/EBC/" ]]
+# if the script is run outside of the RichardsonLab directory (e.g., in home directory where space is limited), terminate the script and show usage documentation
+if [[ ! "$PWD" =~ "/RichardsonLab/" ]]; 
 then Usage
 fi
 
@@ -50,7 +50,7 @@ then
 	echo "The configuration file was not found."
 	echo "The script must be submitted with (1) a configuration file name and (2) a subject list as in the example below."
 	echo
-	echo "./check_data.sh config-pixar_mind-body.tsv TEBC-5y_subjs.txt"
+	echo "./check_data.sh config-pixar_mind-body.tsv KMVPA_subjs.txt"
 	echo
 	
 	# end script and show full usage documentation	
@@ -63,7 +63,7 @@ then
 	echo "The list of participants was not found."
 	echo "The script must be submitted with (1) a configuration file name and (2) a subject list as in the example below."
 	echo
-	echo "./check_data.sh config-pixar_mind-body.tsv TEBC-5y_subjs.txt"
+	echo "./check_data.sh config-pixar_mind-body.tsv KMVPA_subjs.txt"
 	echo
 	
 	# end script and show full usage documentation	
@@ -80,10 +80,10 @@ singularityDir="${projDir}/singularity_images"
 codeDir="${projDir}/scripts/05.motion_exclusions"
 
 # convert the singularity image to a sandbox if it doesn't already exist to avoid having to rebuild on each run
-if [ ! -d ${singularityDir}/nipype_sandbox ]
-then
-	singularity build --sandbox ${singularityDir}/nipype_sandbox ${singularityDir}/nipype_nilearn.simg
-fi
+# if [ ! -d ${singularityDir}/nipype_sandbox ]
+# then
+	# singularity build --sandbox ${singularityDir}/nipype_sandbox ${singularityDir}/nipype_nilearn.simg
+# fi
 
 # change the location of the singularity cache ($HOME/.singularity/cache by default, but limited space in this directory)
 export SINGULARITY_TMPDIR=${singularityDir}
@@ -101,15 +101,15 @@ do
 	sub=$(echo ${p} | awk '{print $1}')
 			
 	# run singularity to create average functional mask
-	singularity exec -C -B /EBC:/EBC								\
-	${singularityDir}/nipype_sandbox								\
+	singularity exec -B /RichardsonLab:/RichardsonLab				\
+	${singularityDir}/nipype_nilearn.simg							\
 	/neurodocker/startup.sh python ${codeDir}/concat_brain_masks.py \
 	-s ${sub} \
 	-c ${projDir}/${config}
 	
 	# run singularity to generate files with motion information for run exclusion
-	singularity exec -C -B /EBC:/EBC									\
-	${singularityDir}/nipype_sandbox 									\
+	singularity exec -B /RichardsonLab:/RichardsonLab					\
+	${singularityDir}/nipype_nilearn.simg 								\
 	/neurodocker/startup.sh python ${codeDir}/mark_motion_exclusions.py \
 	-s ${sub} 															\
 	-c ${projDir}/${config} 											\

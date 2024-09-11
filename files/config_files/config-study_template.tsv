@@ -4,7 +4,7 @@ derivDir
 resultsDir	
 resampleDir	
 task	
-sessions	01
+sessions	no
 multiecho	no
 FD_thresh	1
 DVARS_thresh	1.5
@@ -22,11 +22,17 @@ events
 modulators	
 contrast	
 timecourses	
-regressors		
+regressors	
 template	MNI152NLin2009cAsym_res-02_T1w
 search_spaces	
 match_events	
-top_nvox		
+top_nvox	
 mask	
 extract	
+nonparametric	
+npermutations	
+group_comparison	
+group_variables	
+est_group_variances	
+tfce	
 overwrite	no

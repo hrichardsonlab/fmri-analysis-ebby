@@ -14,9 +14,9 @@ Usage() {
 	echo "./generate_scanfiles.sh <list of subjects>"
 	echo
 	echo "Example:"
-	echo "./generate_scanfiles.sh TEBC-5y_subjs.txt"
+	echo "./generate_scanfiles.sh KMVPA_subjs.txt"
 	echo 
-	echo "TEBC-5y_subjs.txt is a file containing the participants to generate the scans.tsv file for:"
+	echo "KMVPA_subjs.txt is a file containing the participants to generate the scans.tsv file for:"
 	echo "001"
 	echo "002"
 	echo "..."
@@ -28,51 +28,30 @@ Usage() {
 }
 [ "$1" = "" ] && Usage
 
-# indicate whether session folders are used (always 'yes' for EBC data)
-sessions='yes'
+# extract study name from list of subjects filename
+study=` basename $1 | cut -d '_' -f 1 `
 
-# extract sample from list of subjects filename (i.e., are these pilot or HV subjs)
-sample=` basename $1 | cut -d '-' -f 3 | cut -d '.' -f 1 `
-cohort=` basename $1 | cut -d '_' -f 1 `
+# define data directories depending on study information
+bidsDir="/RichardsonLab/preprocessedData/${study}"
+derivDir="${bidsDir}/derivatives"
 
-# define data directories depending on sample information
-if [[ ${sample} == 'pilot' ]]
-then
-	bidsDir="/EBC/preprocessedData/${cohort}/BIDs_data/pilot"
-	derivDir="/EBC/preprocessedData/${cohort}/derivatives/pilot"
-elif [[ ${sample} == 'HV' ]]
-then
-	bidsDir="/EBC/preprocessedData/${cohort}-adultpilot/BIDs_data"
-	derivDir="/EBC/preprocessedData/${cohort}-adultpilot/derivatives"
-else
-	bidsDir="/EBC/preprocessedData/${cohort}/BIDs_data"
-	derivDir="/EBC/preprocessedData/${cohort}/derivatives"
-fi
-
-# print confirmation of sample and directory
-echo 'Generating scans.tsv files for' ${sample} 'data in' ${derivDir}
+# print confirmation of study and directory
+echo 'Generating scans.tsv files for' ${study} 'data in' ${derivDir}
 
 # iterate over subjects
 while read p
 do
 	sub=$(echo ${p} |awk '{print $1}')
 	
-	# define subject derivatives directory depending on whether data are organized in session folders
-	if [[ ${sessions} == 'yes' ]]
-	then
-		subDir_bids="${bidsDir}/sub-${sub}/ses-01/func"
-		subDir_deriv="${derivDir}/sub-${sub}/ses-01/func"
-		scan_file="sub-${sub}_ses-01_scans.tsv"
-	else
-		subDir_bids="${bidsDir}/sub-${sub}/func"
-		subDir_deriv="${derivDir}/sub-${sub}/func"
-		scan_file="sub-${sub}_scans.tsv"
-	fi
-	
+	# define subject derivatives directory
+	subDir_bids="${bidsDir}/${sub}/func"
+	subDir_deriv="${derivDir}/${sub}/func"
+	scan_file="${sub}_scans.tsv"
+
 	# create scan.tsv file for each subject who has functional data
 	if [ -d ${subDir_bids} ] # if the subject has a functional data folder
 	then
-		echo "Generating scans.tsv file for sub-${sub}"
+		echo "Generating scans.tsv file for ${sub}"
 
 		# delete scans.tsv file if it already exists
 		if [ -f ${subDir_bids}/${scan_file} ] || [ -f ${subDir_deriv}/${scan_file} ] 
@@ -97,7 +76,9 @@ do
 			name=""
 			name='\nfunc/'${current}
 			printf ${name} >> ${subDir_bids}/${scan_file}
+		
 		done
+
 	fi
 	
 	# copy scans.tsv to derivDir

@@ -24,7 +24,7 @@ import glob
 import shutil
 
 # define average runs workflow function
-def combine_runs_workflow(projDir, derivDir, resultsDir, subDir, workDir, sub, ses, task, runs, events, contrast_opts, splithalf_id, name='sub-{}_task-{}_combineruns'):
+def combine_runs_workflow(projDir, derivDir, resultsDir, subDir, workDir, sub, ses, task, runs, events, contrast_opts, splithalf_id, name='{}_task-{}_combineruns'):
     """Processing pipeline"""
     
     # initialize workflow
@@ -46,13 +46,13 @@ def combine_runs_workflow(projDir, derivDir, resultsDir, subDir, workDir, sub, s
         # define mask file name, depending on whether session information is in directory/file names
         if ses != 'no': # if session was provided
             # define path to preprocessed mask data (subject derivatives func folder)
-            funcDir = op.join(derivDir, 'sub-{}'.format(sub), 'ses-{}'.format(ses), 'func')
-            mni_mask = op.join(funcDir, 'sub-{}_ses-{}_space-MNI152NLin2009cAsym_res-2_desc-brain_mask_allruns-BOLDmask.nii.gz'.format(sub, ses))
+            funcDir = op.join(derivDir, '{}'.format(sub), 'ses-{}'.format(ses), 'func')
+            mni_mask = op.join(funcDir, '{}_ses-{}_space-MNI152NLin2009cAsym_res-2_desc-brain_mask_allruns-BOLDmask.nii.gz'.format(sub, ses))
             
         else: # if session was 'no'
             # define path to preprocessed mask data (subject derivatives func folder)
-            funcDir = op.join(derivDir, 'sub-{}'.format(sub), 'func')
-            mni_mask = op.join(funcDir, 'sub-{}_space-MNI152NLin2009cAsym_res-2_desc-brain_mask_allruns-BOLDmask.nii.gz'.format(sub))   
+            funcDir = op.join(derivDir, '{}'.format(sub), 'func')
+            mni_mask = op.join(funcDir, '{}_space-MNI152NLin2009cAsym_res-2_desc-brain_mask_allruns-BOLDmask.nii.gz'.format(sub))   
         
         # copy mask file to subject resultsDir so it can be easily picked up in next step
         shutil.copy(mni_mask, op.join(subDir, 'preproc'))
@@ -240,14 +240,14 @@ def combine_runs_workflow(projDir, derivDir, resultsDir, subDir, workDir, sub, s
 def process_subject(projDir, derivDir, resultsDir, workDir, sub, ses, task, sub_runs, events, contrast_opts, splithalf_id):
 
     # define subject output directory
-    subDir = op.join(resultsDir, 'sub-{}'.format(sub))
+    subDir = op.join(resultsDir, '{}'.format(sub))
 
     # raise an error if the firstlevel output directory doesn't exist
     if not subDir:
-        raise FileNotFoundError('No firstlevel outputs found for sub-{}'.format(sub))
+        raise FileNotFoundError('No firstlevel outputs found for {}'.format(sub))
     
     # delete prior processing directories because cache files can interfere with workflow
-    subworkDir = op.join(workDir, 'sub-{}_task-{}_combineruns'.format(sub, task))
+    subworkDir = op.join(workDir, '{}_task-{}_combineruns'.format(sub, task))
     if os.path.exists(subworkDir):
         shutil.rmtree(subworkDir)
         

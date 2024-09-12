@@ -8,11 +8,11 @@
 # the pipeline. These parameters are likely to vary for each study, so must be specified for each project.
 #
 # The nipype singularity was installed using the following code:
-# 	SINGULARITY_TMPDIR=/EBC/processing SINGULARITY_CACHEDIR=/EBC/processing singularity build /EBC/processing/singularity_images/nipype-1.8.6.simg docker://nipype/nipype:latest
+# 	SINGULARITY_TMPDIR=/RichardsonLab/processing SINGULARITY_CACHEDIR=/RichardsonLab/processing sudo singularity build /RichardsonLab/processing/singularity_images/nipype-1.8.6.simg docker://nipype/nipype:latest
 #
 ################################################################################
 
-# usage documentation - shown if no text file is provided or if script is run outside EBC directory
+# usage documentation - shown if no text file is provided or if script is run outside RichardsonLab directory
 Usage() {
 	echo
 	echo
@@ -20,18 +20,18 @@ Usage() {
 	echo "./run_first-level.sh <pipeline script> <configuration file name> <list of subjects>"
 	echo
 	echo "Example:"
-	echo "./run_first-level.sh firstlevel_pipeline.py config-pixar_mind-body.tsv TEBC-5y_subjs.txt"
+	echo "./run_first-level.sh firstlevel_pipeline.py config-kmvpa_mental-physical.tsv KMVPA_subjs.txt"
 	echo
 	echo "The config file name (not path!) should be provided"
 	echo
-	echo "TEBC-5y_subjs.txt is a file containing the participants to process:"
+	echo "KMVPA_subjs.txt is a file containing the participants to process:"
 	echo "001"
 	echo "002"
 	echo "..."
 	echo
 	echo
-	echo "This script must be run within the /EBC/ directory on the server due to space requirements."
-	echo "The script will terminiate if run outside of the /EBC/ directory."
+	echo "This script must be run within the /RichardsonLab/ directory on the server due to space requirements."
+	echo "The script will terminiate if run outside of the /RichardsonLab/ directory."
 	echo
 	echo "Script created by Melissa Thye"
 	echo
@@ -39,11 +39,10 @@ Usage() {
 }
 [ "$1" = "" ] | [ "$2" = "" ] | [ "$3" = "" ] && Usage
 
-# if the script is run outside of the EBC directory (e.g., in home directory where space is limited), terminate the script and show usage documentation
-if [[ ! "$PWD" =~ "/EBC/" ]]
+# if the script is run outside of the RichardsonLab directory (e.g., in home directory where space is limited), terminate the script and show usage documentation
+if [[ ! "$PWD" =~ "/RichardsonLab/" ]]; 
 then Usage
 fi
-
 # check that inputs are expected file types
 if [ ! ${pipeline##*.} == "py" ]
 then
@@ -51,7 +50,7 @@ then
 	echo "The pipeline script was not found."
 	echo "The script must be submitted with (1) a pipeline script, (2) a configuration file name, and (3) a subject list as in the example below."
 	echo
-	echo "./run_first-level.sh firstlevel_pipeline.py config-pixar_mind-body.tsv TEBC-5y_subjs.txt"
+	echo "./run_first-level.sh firstlevel_pipeline.py config-kmvpa_mental-physical.tsv KMVPA_subjs.txt"
 	echo
 	
 	# end script and show full usage documentation
@@ -64,7 +63,7 @@ then
 	echo "The configuration file was not found."
 	echo "The script must be submitted with (1) a pipeline script, (2) a configuration file name, and (3) a subject list as in the example below."
 	echo
-	echo "./run_first-level.sh firstlevel_pipeline.py config-pixar_mind-body.tsv TEBC-5y_subjs.txt"
+	echo "./run_first-level.sh firstlevel_pipeline.py config-kmvpa_mental-physical.tsv KMVPA_subjs.txt"
 	echo
 	
 	# end script and show full usage documentation	
@@ -77,7 +76,7 @@ then
 	echo "The list of participants was not found."
 	echo "The script must be submitted with (1) a pipeline script, (2) a configuration file name, and (3) a subject list as in the example below."
 	echo
-	echo "./run_first-level.sh firstlevel_pipeline.py config-pixar_mind-body.tsv TEBC-5y_subjs.txt"
+	echo "./run_first-level.sh firstlevel_pipeline.py config-kmvpa_mental-physical.tsv KMVPA_subjs.txt"
 	echo
 	
 	# end script and show full usage documentation	
@@ -101,10 +100,10 @@ codeDir="${projDir}/scripts/06.first_level"
 outDir="${projDir}/analysis/${proj_name}/${analysis_name}"
 
 # convert the singularity image to a sandbox if it doesn't already exist to avoid having to rebuild on each run
-if [ ! -d ${singularityDir}/nipype_sandbox ]
-then
-	singularity build --sandbox ${singularityDir}/nipype_sandbox ${singularityDir}/nipype_nilearn.simg
-fi
+# if [ ! -d ${singularityDir}/nipype_sandbox ]
+# then
+	# singularity build --sandbox ${singularityDir}/nipype_sandbox ${singularityDir}/nipype_nilearn.simg
+# fi
 
 # create working and output directories if they don't exist
 if [ ! -d ${outDir} ] || [ ! -d ${outDir}/processing ] &&  [ ${pipeline} != 'define_fROIs.py' ]
@@ -136,8 +135,8 @@ echo "Running" ${pipeline} "for..."
 echo "${subjs}"
 
 # run first-level workflow using script specified in script call
-singularity exec -C -B /EBC:/EBC						\
-${singularityDir}/nipype_sandbox						\
+singularity exec -B /RichardsonLab:/RichardsonLab		\
+${singularityDir}/nipype_nilearn.simg					\
 /neurodocker/startup.sh python ${codeDir}/${pipeline}	\
 -p ${projDir}											\
 -w ${outDir}/processing									\

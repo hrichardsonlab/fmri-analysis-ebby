@@ -56,7 +56,7 @@ def process_subject(projDir, sharedDir, resultsDir, sub, runs, task, events, spl
         roi_masks.append(roi_file)
     
     # define combined run directory for this subject
-    combinedDir = op.join(resultsDir, 'sub-{}'.format(sub), 'model', 'combined_runs')
+    combinedDir = op.join(resultsDir, '{}'.format(sub), 'model', 'combined_runs')
     
     # check if combinedDir exists
     if op.exists(combinedDir): # if yes, generate fROIs for the combined runs
@@ -68,25 +68,25 @@ def process_subject(projDir, sharedDir, resultsDir, sub, runs, task, events, spl
         # for each splithalf
         for s in splithalves:
             if s == 0 and r != 0:
-                modelDir = op.join(resultsDir, 'sub-{}'.format(sub), 'model', 'run{}'.format(r))
-                froiDir = op.join(resultsDir, 'sub-{}'.format(sub), 'frois', 'run{}'.format(r))
+                modelDir = op.join(resultsDir, '{}'.format(sub), 'model', 'run{}'.format(r))
+                froiDir = op.join(resultsDir, '{}'.format(sub), 'frois', 'run{}'.format(r))
                 # grab functional file for resampling
-                mni_file = glob.glob(op.join(resultsDir, 'sub-{}'.format(sub), 'preproc', 'run{}'.format(r), '*preproc_bold.nii.gz'))
+                mni_file = glob.glob(op.join(resultsDir, '{}'.format(sub), 'preproc', 'run{}'.format(r), '*preproc_bold.nii.gz'))
             elif s == 0 and r == 0:
                 modelDir = combinedDir
-                froiDir = op.join(resultsDir, 'sub-{}'.format(sub), 'frois', 'combined')
+                froiDir = op.join(resultsDir, '{}'.format(sub), 'frois', 'combined')
                 # grab functional file for resampling (doesn't matter which one)
-                mni_file = glob.glob(op.join(resultsDir, 'sub-{}'.format(sub), 'preproc', 'run1', '*preproc_bold.nii.gz'))
+                mni_file = glob.glob(op.join(resultsDir, '{}'.format(sub), 'preproc', 'run1', '*preproc_bold.nii.gz'))
             elif s != 0 and r != 0:
-                modelDir = op.join(resultsDir, 'sub-{}'.format(sub), 'model', 'run{}_splithalf{}'.format(r,s))
-                froiDir = op.join(resultsDir, 'sub-{}'.format(sub), 'frois', 'run{}_splithalf{}'.format(r,s))
+                modelDir = op.join(resultsDir, '{}'.format(sub), 'model', 'run{}_splithalf{}'.format(r,s))
+                froiDir = op.join(resultsDir, '{}'.format(sub), 'frois', 'run{}_splithalf{}'.format(r,s))
                 # grab functional file for resampling
-                mni_file = glob.glob(op.join(resultsDir, 'sub-{}'.format(sub), 'preproc', 'run{}_splithalf{}'.format(r,s), '*preproc_bold.nii.gz'))
+                mni_file = glob.glob(op.join(resultsDir, '{}'.format(sub), 'preproc', 'run{}_splithalf{}'.format(r,s), '*preproc_bold.nii.gz'))
             elif s != 0 and r == 0:
                 modelDir = op.join(combinedDir, 'splithalf{}'.format(s))
-                froiDir = op.join(resultsDir, 'sub-{}'.format(sub), 'frois', 'combined', 'splithalf{}'.format(s))
+                froiDir = op.join(resultsDir, '{}'.format(sub), 'frois', 'combined', 'splithalf{}'.format(s))
                 # grab functional file for resampling (doesn't matter which one)
-                mni_file = glob.glob(op.join(resultsDir, 'sub-{}'.format(sub), 'preproc', 'run1_splithalf{}'.format(s), '*preproc_bold.nii.gz'))           
+                mni_file = glob.glob(op.join(resultsDir, '{}'.format(sub), 'preproc', 'run1_splithalf{}'.format(s), '*preproc_bold.nii.gz'))           
             # make frois directory
             os.makedirs(froiDir, exist_ok=True)
               
@@ -147,7 +147,7 @@ def process_subject(projDir, sharedDir, resultsDir, sub, runs, task, events, spl
                         # masked_data[masked_data == 0.00000000] = np.nan
 
                         # save masked file (optional data checking step)
-                        # masked_img_file = op.join(froiDir, 'sub-{}_run-{:02d}_splithalf-{:02d}_{}_{}-masked.nii.gz'.format(sub, r, s, search_spaces[m], c))
+                        # masked_img_file = op.join(froiDir, '{}_run-{:02d}_splithalf-{:02d}_{}_{}-masked.nii.gz'.format(sub, r, s, search_spaces[m], c))
                         # masked_img.to_filename(masked_img_file)
                         
                         # get top voxels
@@ -165,10 +165,10 @@ def process_subject(projDir, sharedDir, resultsDir, sub, runs, task, events, spl
                         # could use roi_name_lower instead of search_spaces[m] to get all lowercase names
                         sub_froi = image.new_img_like(mask_bin, sub_froi) # create a new image of the same class as the initial image
                         if r == 0:
-                            sub_roi_file = op.join(froiDir, 'sub-{}_task-{}_splithalf-{:02d}_{}_{}_top{}.nii.gz'.format(sub, task, s, search_spaces[m], c, top_nvox))
+                            sub_roi_file = op.join(froiDir, '{}_task-{}_splithalf-{:02d}_{}_{}_top{}.nii.gz'.format(sub, task, s, search_spaces[m], c, top_nvox))
                         else:
-                            # sub_roi_file = op.join(froiDir, 'sub-{}_run-{:02d}_splithalf-{:02d}_{}-{}_{}_top{}.nii.gz'.format(sub, r, s, network, search_spaces[m], c, top_nvox)) # include network in file output name
-                            sub_roi_file = op.join(froiDir, 'sub-{}_task-{}_run-{:02d}_splithalf-{:02d}_{}_{}_top{}.nii.gz'.format(sub, task, r, s, search_spaces[m], c, top_nvox))
+                            # sub_roi_file = op.join(froiDir, '{}_run-{:02d}_splithalf-{:02d}_{}-{}_{}_top{}.nii.gz'.format(sub, r, s, network, search_spaces[m], c, top_nvox)) # include network in file output name
+                            sub_roi_file = op.join(froiDir, '{}_task-{}_run-{:02d}_splithalf-{:02d}_{}_{}_top{}.nii.gz'.format(sub, task, r, s, search_spaces[m], c, top_nvox))
                         sub_froi.to_filename(sub_roi_file)
 
 # define command line parser function
@@ -247,7 +247,7 @@ def main(argv=None):
 
     # for each subject in the list of subjects
     for index, sub in enumerate(args.subjects):
-        print('Defining fROIs for sub-{}'.format(sub))
+        print('Defining fROIs for {}'.format(sub))
         # pass runs for this sub
         sub_runs=args.runs[index]
         sub_runs=sub_runs.replace(' ','').split(',') # split runs by separators

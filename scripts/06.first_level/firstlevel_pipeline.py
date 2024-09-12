@@ -29,7 +29,7 @@ from datetime import datetime
 def create_firstlevel_workflow(projDir, derivDir, workDir, outDir, 
                                sub, task, ses, multiecho, runs, events_files, events, modulators, contrast, contrast_opts, timecourses,
                                regressor_opts, smoothing_kernel_size, smoothDir, hpf, TR, dropvols, splithalves, sparse,
-                               name='sub-{}_task-{}_levelone'):
+                               name='{}_task-{}_levelone'):
     """Processing pipeline"""
     
     # initialize workflow
@@ -69,15 +69,15 @@ def create_firstlevel_workflow(projDir, derivDir, workDir, outDir,
         # define output filename and path, depending on whether session information is in directory/file names
         if ses != 'no': # if session was provided
             # define path to preprocessed functional and mask data (subject derivatives func folder)
-            prefix = 'sub-{}_ses-{}_task-{}'.format(sub, ses, task)
-            funcDir = op.join(derivDir, 'sub-{}'.format(sub), 'ses-{}'.format(ses), 'func')
-            mni_mask = op.join(funcDir, 'sub-{}_ses-{}_space-MNI152NLin2009cAsym_res-2_desc-brain_mask_allruns-BOLDmask.nii.gz'.format(sub, ses))
+            prefix = '{}_ses-{}_task-{}'.format(sub, ses, task)
+            funcDir = op.join(derivDir, '{}'.format(sub), 'ses-{}'.format(ses), 'func')
+            mni_mask = op.join(funcDir, '{}_ses-{}_space-MNI152NLin2009cAsym_res-2_desc-brain_mask_allruns-BOLDmask.nii.gz'.format(sub, ses))
             
         else: # if session was 'no'
             # define path to preprocessed functional and mask data (subject derivatives func folder)
-            prefix = 'sub-{}_task-{}'.format(sub, task)
-            funcDir = op.join(derivDir, 'sub-{}'.format(sub), 'func')
-            mni_mask = op.join(funcDir, 'sub-{}_space-MNI152NLin2009cAsym_res-2_desc-brain_mask_allruns-BOLDmask.nii.gz'.format(sub))
+            prefix = '{}_task-{}'.format(sub, task)
+            funcDir = op.join(derivDir, '{}'.format(sub), 'func')
+            mni_mask = op.join(funcDir, '{}_space-MNI152NLin2009cAsym_res-2_desc-brain_mask_allruns-BOLDmask.nii.gz'.format(sub))
         
         # add run info to file prefix if necessary
         if run_id != 0:
@@ -109,9 +109,9 @@ def create_firstlevel_workflow(projDir, derivDir, workDir, outDir,
         # check to see whether outputs exist in smoothDir (if smoothDir was specified in config file)
         if smoothDir: 
             if splithalf_id != 0:
-                smooth_file = op.join(smoothDir, 'sub-{}'.format(sub), 'preproc', '{}_splithalf{}'.format(run_name, splithalf_id), '{}_space-MNI-preproc_bold_smooth.nii.gz'.format(prefix))
+                smooth_file = op.join(smoothDir, '{}'.format(sub), 'preproc', '{}_splithalf{}'.format(run_name, splithalf_id), '{}_space-MNI-preproc_bold_smooth.nii.gz'.format(prefix))
             else:
-                smooth_file = op.join(smoothDir, 'sub-{}'.format(sub), 'preproc', '{}'.format(run_name), '{}_space-MNI-preproc_bold_smooth.nii.gz'.format(prefix))
+                smooth_file = op.join(smoothDir, '{}'.format(sub), 'preproc', '{}'.format(run_name), '{}_space-MNI-preproc_bold_smooth.nii.gz'.format(prefix))
 
             if os.path.exists(smooth_file):
                 mni_file = smooth_file
@@ -199,11 +199,11 @@ def create_firstlevel_workflow(projDir, derivDir, workDir, outDir,
         if run_id != 0:
             run_abrv = 'run{}'.format(run_id)
             run_full = 'run-{:02d}'.format(run_id)
-            outlier_file_prefix = 'sub-{}_task-{}_{}'.format(sub, task, run_full)
+            outlier_file_prefix = '{}_task-{}_{}'.format(sub, task, run_full)
         else:
             run_abrv = 'run1'
             run_full = 'run-01'
-            outlier_file_prefix = 'sub-{}_task-{}'.format(sub, task)         
+            outlier_file_prefix = '{}_task-{}'.format(sub, task)         
         
         if splithalf_id == 0:  # if processing full run (splithalf = 'no' in config file)
             artDir = op.join(outDir, 'art_files', '{}'.format(run_abrv))
@@ -547,7 +547,6 @@ def create_firstlevel_workflow(projDir, derivDir, workDir, outDir,
             subs.append(('/zstat%d.' % i, '/con_%d_%s_zstat.' % (i, name)))
             subs.append(('/tstat%d.' % i, '/con_%d_%s_tstat.' % (i, name)))
             subs.append(('/_filmgls0/', '/'))
-        
         return subs
 
     gensubs = Node(Function(function=substitutes), name='substitute_gen')
@@ -584,7 +583,6 @@ def create_firstlevel_workflow(projDir, derivDir, workDir, outDir,
     wf.connect(glm, 'tstats', sinker, 'model.@tstats')
     wf.connect(glm, 'varcopes', sinker, 'model.@varcopes')
     wf.connect(glm, 'zstats', sinker, 'model.@zstats')
-    
     return wf
 
 # define function to extract subject-level data for workflow
@@ -597,24 +595,24 @@ def process_subject(layout, projDir, derivDir, outDir, workDir,
     import pandas as pd
 
     # define subject output directory
-    subDir = op.join(outDir, 'sub-{}'.format(sub))
+    subDir = op.join(outDir, '{}'.format(sub))
     
     # identify scan and events files
     if ses != 'no': # if session was provided
         print('Session information provided. Assuming data are organized into session folders.')
         
         # identify scans file (from derivDir bc artifact information is saved in the processed scans.tsv file)
-        scans_tsv = glob.glob(op.join(derivDir, 'sub-{}'.format(sub), 'ses-{}'.format(ses), 'func', '*_scans.tsv'))[0]
+        scans_tsv = glob.glob(op.join(derivDir, '{}'.format(sub), 'ses-{}'.format(ses), 'func', '*_scans.tsv'))[0]
         
         # identify events file
-        events_all = glob.glob(op.join(derivDir, 'sub-{}'.format(sub), 'ses-{}'.format(ses), 'func', 'sub-{}_ses-{}_task-{}*_events.tsv'.format(sub, ses, task)))
+        events_all = glob.glob(op.join(derivDir, '{}'.format(sub), 'ses-{}'.format(ses), 'func', '{}_ses-{}_task-{}*_events.tsv'.format(sub, ses, task)))
        
     else: # if session was 'no'
         # identify scans file (from derivDir bc artifact information is saved in the processed scans.tsv file)
-        scans_tsv = glob.glob(op.join(derivDir, 'sub-{}'.format(sub), 'func', '*_scans.tsv'))[0]
+        scans_tsv = glob.glob(op.join(derivDir, '{}'.format(sub), 'func', '*_scans.tsv'))[0]
         
         # identify events file
-        events_all = glob.glob(op.join(derivDir, 'sub-{}'.format(sub), 'func', 'sub-{}_task-{}*_events.tsv'.format(sub, task)))
+        events_all = glob.glob(op.join(derivDir, '{}'.format(sub), 'func', '{}_task-{}*_events.tsv'.format(sub, task)))
     
     # return error if scan file not found
     if not os.path.isfile(scans_tsv):
@@ -652,7 +650,7 @@ def process_subject(layout, projDir, derivDir, outDir, workDir,
     
     # if the participant didn't have any runs for this task or all runs were excluded due to motion
     if not keepruns:
-        raise FileNotFoundError('No included bold {} runs included for sub-{}'.format(task, sub))
+        raise FileNotFoundError('No included bold {} runs included for {}'.format(task, sub))
 
     # extract TR info from bidsDir bold json files (assumes TR is same across runs)
     epi = layout.get(subject=sub, suffix='bold', task=task, return_type='file')[0] # take first file
@@ -679,7 +677,7 @@ def process_subject(layout, projDir, derivDir, outDir, workDir,
         tc_dat=tc_dat.filter(regressor_opts)
         
         # save as tc regressor file in tcDir
-        tcreg_file = op.join(tcDir, 'sub-{}_ROI_timecourses.txt'.format(sub))
+        tcreg_file = op.join(tcDir, '{}_ROI_timecourses.txt'.format(sub))
         pd.DataFrame(tc_dat).to_csv(tcreg_file, index=False, sep ='\t') 
         
         # assign timecourse files as events_files (duplicating for the number of kept runs because the same timecourses are used for each run)
@@ -697,10 +695,10 @@ def process_subject(layout, projDir, derivDir, outDir, workDir,
     
     # if no events identified (e.g., resting state data)
     if not events_files:
-        raise FileNotFoundError('No event files found for sub-{}'.format(sub))
+        raise FileNotFoundError('No event files found for {}'.format(sub))
     
     # delete prior processing directories because cache files can interfere with workflow
-    subworkDir = op.join(workDir, 'sub-{}_task-{}_levelone'.format(sub, task))
+    subworkDir = op.join(workDir, '{}_task-{}_levelone'.format(sub, task))
     if os.path.exists(subworkDir):
         shutil.rmtree(subworkDir)
  

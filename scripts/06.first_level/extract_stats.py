@@ -26,11 +26,11 @@ import shutil
 def process_subject(projDir, sharedDir, resultsDir, sub, runs, task, events, splithalves, mask_opts, match_events, template, extract_opt):
     
     # make output stats directory
-    statsDir = op.join(resultsDir, 'sub-{}'.format(sub), 'stats')
+    statsDir = op.join(resultsDir, '{}'.format(sub), 'stats')
     os.makedirs(statsDir, exist_ok=True)
     
     # create output file name
-    stats_file = op.join(statsDir, 'sub-{}_task-{}_{}_ROI_magnitudes.csv'.format(sub, task, extract_opt))
+    stats_file = op.join(statsDir, '{}_task-{}_{}_ROI_magnitudes.csv'.format(sub, task, extract_opt))
 
     # delete output file if it already exists (to ensure stats aren't appended to pre-existing files)
     if os.path.isfile(stats_file):
@@ -47,22 +47,22 @@ def process_subject(projDir, sharedDir, resultsDir, sub, runs, task, events, spl
                 if 'fROI' in m:
                     if splithalf_id != 0:
                         # grab mni file (used only if resampling is required)
-                        mni_file = glob.glob(op.join(resultsDir, 'sub-{}'.format(sub), 'preproc', 'run{}_splithalf{}'.format(run_id, splithalf_id), '*preproc_bold.nii.gz'))
-                        modelDir = op.join(resultsDir, 'sub-{}'.format(sub), 'model', 'run{}_splithalf{}'.format(run_id, splithalf_id))
+                        mni_file = glob.glob(op.join(resultsDir, '{}'.format(sub), 'preproc', 'run{}_splithalf{}'.format(run_id, splithalf_id), '*preproc_bold.nii.gz'))
+                        modelDir = op.join(resultsDir, '{}'.format(sub), 'model', 'run{}_splithalf{}'.format(run_id, splithalf_id))
 
                         # ensure that the fROI from the *opposite* splithalf is picked up for timecourse extraction (e.g., timecourse from splithalf1 is extracted from fROI defined in splithalf2)
                         if splithalf_id == 1:
                             print('Will skip stats extraction in splithalf{} for any fROIs defined in splithalf{}'.format(splithalf_id, splithalf_id))
-                            froi_prefix = op.join(resultsDir, 'sub-{}'.format(sub), 'frois', 'run{}_splithalf2'.format(run_id))
+                            froi_prefix = op.join(resultsDir, '{}'.format(sub), 'frois', 'run{}_splithalf2'.format(run_id))
                             
                         if splithalf_id == 2:
                             print('Will skip signal extraction in splithalf{} for any fROIs defined in splithalf{}'.format(splithalf_id, splithalf_id))
-                            froi_prefix = op.join(resultsDir, 'sub-{}'.format(sub), 'frois', 'run{}_splithalf1'.format(run_id))
+                            froi_prefix = op.join(resultsDir, '{}'.format(sub), 'frois', 'run{}_splithalf1'.format(run_id))
                     else:
                         # grab mni file (used only if resampling is required)
-                        mni_file = glob.glob(op.join(resultsDir, 'sub-{}'.format(sub), 'preproc', 'run{}'.format(run_id), '*preproc_bold.nii.gz'))
-                        modelDir = op.join(resultsDir, 'sub-{}'.format(sub), 'model', 'run{}'.format(run_id))
-                        froi_prefix = op.join(resultsDir, 'sub-{}'.format(sub), 'frois', 'run{}'.format(run_id), 'sub-{}_task-{}_run-{:02d}'.format(sub, task, run_id))
+                        mni_file = glob.glob(op.join(resultsDir, '{}'.format(sub), 'preproc', 'run{}'.format(run_id), '*preproc_bold.nii.gz'))
+                        modelDir = op.join(resultsDir, '{}'.format(sub), 'model', 'run{}'.format(run_id))
+                        froi_prefix = op.join(resultsDir, '{}'.format(sub), 'frois', 'run{}'.format(run_id), '{}_task-{}_run-{:02d}'.format(sub, task, run_id))
                     
                     if not froi_prefix:
                         print('ERROR: unable to locate fROI file. Make sure a resultsDir is provided in the config file!')
@@ -183,7 +183,7 @@ def process_subject(projDir, sharedDir, resultsDir, sub, runs, task, events, spl
                             if splithalf_id != 0:
                                 masked_df.insert(loc=0, column='half', value=splithalf_id)
                             masked_df.insert(loc=0, column='run', value=run_id)
-                            masked_df.insert(loc=0, column='sub', value='sub-{}'.format(sub))
+                            masked_df.insert(loc=0, column='sub', value='{}'.format(sub))
                             
                             if not os.path.isfile(stats_file): # if the stats output file doesn't exist
                                 # save dataframe
@@ -258,7 +258,7 @@ def main(argv=None):
         
     # for each subject in the list of subjects
     for index, sub in enumerate(args.subjects):
-        print('Defining fROIs for sub-{}'.format(sub))
+        print('Defining fROIs for {}'.format(sub))
         # pass runs for this sub
         sub_runs=args.runs[index]
         sub_runs=sub_runs.replace(' ','').split(',') # split runs by separators

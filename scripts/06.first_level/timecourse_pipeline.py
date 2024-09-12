@@ -27,7 +27,7 @@ from datetime import datetime
 # define first level workflow function
 def create_timecourse_workflow(sharedDir, projDir, derivDir, workDir, outDir, subDir, 
                                sub, task, ses, multiecho, runs, regressor_opts, mask_opts, smoothing_kernel_size, resultsDir, smoothDir, hpf, filter_opt, TR, detrend,standardize, template, extract_opt, dropvols, splithalves,
-                               name='sub-{}_task-{}_timecourses'):
+                               name='{}_task-{}_timecourses'):
     """Processing pipeline"""
 
     # initialize workflow
@@ -67,15 +67,15 @@ def create_timecourse_workflow(sharedDir, projDir, derivDir, workDir, outDir, su
         # define output filename and path, depending on whether session information is in directory/file names
         if ses != 'no': # if session was provided
             # define path to preprocessed functional and mask data (subject derivatives func folder)
-            prefix = 'sub-{}_ses-{}_task-{}'.format(sub, ses, task)
-            funcDir = op.join(derivDir, 'sub-{}'.format(sub), 'ses-{}'.format(ses), 'func')
-            mni_mask = op.join(funcDir, 'sub-{}_ses-{}_space-MNI152NLin2009cAsym_res-2_desc-brain_mask_allruns-BOLDmask.nii.gz'.format(sub, ses))
+            prefix = '{}_ses-{}_task-{}'.format(sub, ses, task)
+            funcDir = op.join(derivDir, '{}'.format(sub), 'ses-{}'.format(ses), 'func')
+            mni_mask = op.join(funcDir, '{}_ses-{}_space-MNI152NLin2009cAsym_res-2_desc-brain_mask_allruns-BOLDmask.nii.gz'.format(sub, ses))
             
         else: # if session was 'no'
             # define path to preprocessed functional and mask data (subject derivatives func folder)
-            prefix = 'sub-{}_task-{}'.format(sub, task)
-            funcDir = op.join(derivDir, 'sub-{}'.format(sub), 'func')
-            mni_mask = op.join(funcDir, 'sub-{}_space-MNI152NLin2009cAsym_res-2_desc-brain_mask_allruns-BOLDmask.nii.gz'.format(sub))
+            prefix = '{}_task-{}'.format(sub, task)
+            funcDir = op.join(derivDir, '{}'.format(sub), 'func')
+            mni_mask = op.join(funcDir, '{}_space-MNI152NLin2009cAsym_res-2_desc-brain_mask_allruns-BOLDmask.nii.gz'.format(sub))
         
         # add run info to file prefix if necessary
         if run_id != 0:
@@ -108,19 +108,19 @@ def create_timecourse_workflow(sharedDir, projDir, derivDir, workDir, outDir, su
         # check to see whether outputs exist in smoothDir (if smoothDir was specified in config file)
         if smoothDir:
             if splithalf_id != 0:
-                smooth_file = op.join(smoothDir, 'sub-{}'.format(sub), 'preproc', '{}_splithalf{}'.format(run_name, splithalf_id), '{}_space-MNI-preproc_bold_smooth.nii.gz'.format(prefix))
+                smooth_file = op.join(smoothDir, '{}'.format(sub), 'preproc', '{}_splithalf{}'.format(run_name, splithalf_id), '{}_space-MNI-preproc_bold_smooth.nii.gz'.format(prefix))
                 
                 # ensure that the fROI from the *opposite* splithalf is picked up for timecourse extraction (e.g., timecourse from splithalf1 is extracted from fROI defined in splithalf2)
                 if splithalf_id == 1:
                     print('Will skip signal extraction in splithalf{} for any fROIs defined in splithalf{}'.format(splithalf_id, splithalf_id))
-                    froi_prefix = op.join(resultsDir, 'sub-{}'.format(sub), 'frois', '{}_splithalf2'.format(run_name))
+                    froi_prefix = op.join(resultsDir, '{}'.format(sub), 'frois', '{}_splithalf2'.format(run_name))
                     
                 if splithalf_id == 2:
                     print('Will skip signal extraction in splithalf{} for any fROIs defined in splithalf{}'.format(splithalf_id, splithalf_id))
-                    froi_prefix = op.join(resultsDir, 'sub-{}'.format(sub), 'frois', '{}_splithalf1'.format(run_name))
+                    froi_prefix = op.join(resultsDir, '{}'.format(sub), 'frois', '{}_splithalf1'.format(run_name))
             else:
-                smooth_file = op.join(smoothDir, 'sub-{}'.format(sub), 'preproc', '{}'.format(run_name), '{}_space-MNI-preproc_bold_smooth.nii.gz'.format(prefix))
-                froi_prefix = op.join(resultsDir, 'sub-{}'.format(sub), 'frois', '{}'.format(run_name))
+                smooth_file = op.join(smoothDir, '{}'.format(sub), 'preproc', '{}'.format(run_name), '{}_space-MNI-preproc_bold_smooth.nii.gz'.format(prefix))
+                froi_prefix = op.join(resultsDir, '{}'.format(sub), 'frois', '{}'.format(run_name))
             
             if os.path.exists(smooth_file):
                 mni_file = smooth_file
@@ -243,11 +243,11 @@ def create_timecourse_workflow(sharedDir, projDir, derivDir, workDir, outDir, su
         if run_id != 0:
             run_abrv = 'run{}'.format(run_id)
             run_full = 'run-{:02d}'.format(run_id)
-            outlier_file_prefix = 'sub-{}_task-{}_{}'.format(sub, task, run_full)
+            outlier_file_prefix = '{}_task-{}_{}'.format(sub, task, run_full)
         else:
             run_abrv = 'run1'
             run_full = 'run-01'
-            outlier_file_prefix = 'sub-{}_task-{}'.format(sub, task)         
+            outlier_file_prefix = '{}_task-{}'.format(sub, task)         
         
         if splithalf_id == 0:  # if processing full run (splithalf = 'no' in config file)
             artDir = op.join(subDir, 'art_files', '{}'.format(run_abrv))
@@ -418,11 +418,11 @@ def create_timecourse_workflow(sharedDir, projDir, derivDir, workDir, outDir, su
      
         # define output file names depending on whether run info is in file name
         if run_id != 0:
-            denoise_file = op.join(denoiseDir, 'sub-{}_task-{}_{}_splithalf-{:02d}_denoised_bold.nii.gz'.format(sub, task, run_full, splithalf_id))
-            pad_file = op.join(denoiseDir, 'sub-{}_task-{}_{}_splithalf-{:02d}_denoised_padded_bold.nii.gz'.format(sub, task, run_full, splithalf_id))
+            denoise_file = op.join(denoiseDir, '{}_task-{}_{}_splithalf-{:02d}_denoised_bold.nii.gz'.format(sub, task, run_full, splithalf_id))
+            pad_file = op.join(denoiseDir, '{}_task-{}_{}_splithalf-{:02d}_denoised_padded_bold.nii.gz'.format(sub, task, run_full, splithalf_id))
         else: # if no run info is in filename, then results are saved under 'run1'
-            denoise_file = op.join(denoiseDir, 'sub-{}_task-{}_splithalf-{:02d}_denoised_bold.nii.gz'.format(sub, task, splithalf_id))
-            pad_file = op.join(denoiseDir, 'sub-{}_task-{}_splithalf-{:02d}_denoised_padded_bold.nii.gz'.format(sub, task, splithalf_id))
+            denoise_file = op.join(denoiseDir, '{}_task-{}_splithalf-{:02d}_denoised_bold.nii.gz'.format(sub, task, splithalf_id))
+            pad_file = op.join(denoiseDir, '{}_task-{}_splithalf-{:02d}_denoised_padded_bold.nii.gz'.format(sub, task, splithalf_id))
         
         # the smoothing node returns a list object but clean_img needs a path to the file
         if isinstance(imgs, list):
@@ -543,10 +543,10 @@ def create_timecourse_workflow(sharedDir, projDir, derivDir, workDir, outDir, su
         # define run name depending on whether run info is in file name
         if run_id != 0:
             run_full = 'run-{:02d}'.format(run_id)
-            run_prefix = op.join(tcDir, 'sub-{}_task-{}_{}'.format(sub, task, run_full))
+            run_prefix = op.join(tcDir, '{}_task-{}_{}'.format(sub, task, run_full))
         else: # if no run info is in filename, then results are saved under 'run1'
             run_full = 'run-01'
-            run_prefix = op.join(tcDir, 'sub-{}_task-{}'.format(sub, task))
+            run_prefix = op.join(tcDir, '{}_task-{}'.format(sub, task))
 
         # extract timecourses for each ROI provided in config file
         for m, mask in enumerate(roi_masks):
@@ -661,18 +661,18 @@ def process_subject(layout, sharedDir, projDir, derivDir, outDir, workDir,
     We want to parallelize runs for greater efficiency
     """
     # define subject output directory
-    subDir = op.join(outDir, 'sub-{}'.format(sub))
+    subDir = op.join(outDir, '{}'.format(sub))
     
     # identify scan and events files
     if ses != 'no': # if session was provided
         print('Session information provided. Assuming data are organized into session folders.')
         
         # identify scans file (from derivDir bc artifact information is saved in the processed scans.tsv file)
-        scans_tsv = glob.glob(op.join(derivDir, 'sub-{}'.format(sub), 'ses-{}'.format(ses), 'func', '*_scans.tsv'))[0]
+        scans_tsv = glob.glob(op.join(derivDir, '{}'.format(sub), 'ses-{}'.format(ses), 'func', '*_scans.tsv'))[0]
         
     else: # if session was 'no'
         # identify scans file (from derivDir bc artifact information is saved in the processed scans.tsv file)
-        scans_tsv = glob.glob(op.join(derivDir, 'sub-{}'.format(sub), 'func', '*_scans.tsv'))[0]
+        scans_tsv = glob.glob(op.join(derivDir, '{}'.format(sub), 'func', '*_scans.tsv'))[0]
         
     # return error if scan file not found
     if not os.path.isfile(scans_tsv):
@@ -710,14 +710,14 @@ def process_subject(layout, sharedDir, projDir, derivDir, outDir, workDir,
 
     # if the participant didn't have any runs for this task or all runs were excluded due to motion
     if not keepruns:
-        raise FileNotFoundError('No included bold {} runs found for sub-{}'.format(task, sub))
+        raise FileNotFoundError('No included bold {} runs found for {}'.format(task, sub))
    
     # extract TR info from bidsDir bold json files (assumes TR is same across runs)
     epi = layout.get(subject=sub, suffix='bold', task=task, return_type='file')[0] # take first file
     TR = layout.get_metadata(epi)['RepetitionTime'] # extract TR field
     
     # delete prior processing directories because cache files can interfere with workflow
-    subworkDir = op.join(workDir, 'sub-{}_task-{}_timecourses'.format(sub, task))
+    subworkDir = op.join(workDir, '{}_task-{}_timecourses'.format(sub, task))
     if os.path.exists(subworkDir):
         shutil.rmtree(subworkDir)
 

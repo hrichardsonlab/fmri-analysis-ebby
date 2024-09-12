@@ -80,13 +80,25 @@ participant											\
 -m T1w bold 										\
 -w ${singularityDir}
 
+# the way the drive is mounted raises a "database is locked" error so copy files to project directory temporarily to generate group reports
+cp -R ${qcDir} ${projDir}
+
 ## generate group reports
 singularity run -B /RichardsonLab:/RichardsonLab	\
 ${singularityDir}/mriqc-24.0.0.simg					\
-${bidsDir} ${qcDir}									\
+${bidsDir} ${projDir}/mriqc							\
 group 												\
--m T1w bold
+-m T1w bold											\
+-w ${singularityDir}
+
+# transfer group reports back to QC directory
+cp ${projDir}/mriqc/group* ${qcDir}
 
 # remove hidden files in singularity directory to avoid space issues
-# rm -r ${singularityDir}/.bids*
+rm -r ${projDir}/mriqc
+rm ${singularityDir}/config*
+rm -r ${singularityDir}/.bids*
+rm -r ${qcDir}/.bids*
+rm -r ${singularityDir}/mriqc_wf*
+rm -r ${singularityDir}/reportlets
 

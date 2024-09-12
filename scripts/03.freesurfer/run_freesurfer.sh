@@ -10,7 +10,7 @@
 #
 ################################################################################
 
-# usage documentation - shown if no text file is provided or if script is run outside EBC directory
+# usage documentation - shown if no text file is provided or if script is run outside RichardsonLab directory
 Usage() {
 	echo
 	echo
@@ -73,7 +73,7 @@ export SINGULARITYENV_TEMPLATEFLOW_HOME=${singularityDir}/fmriprep/.cache/templa
 
 # display subjects
 echo
-echo "Running fMRIPrep for..."
+echo "Running Freesurfer via fMRIPrep for..."
 echo "${subjs}"
 
 # iterate for all subjects in the text file

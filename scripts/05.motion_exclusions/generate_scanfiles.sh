@@ -28,6 +28,9 @@ Usage() {
 }
 [ "$1" = "" ] && Usage
 
+# indicate whether session folders are used (always 'yes' for EBC data)
+sessions='no'
+
 # extract study name from list of subjects filename
 study=` basename $1 | cut -d '_' -f 1 `
 
@@ -43,10 +46,17 @@ while read p
 do
 	sub=$(echo ${p} |awk '{print $1}')
 	
-	# define subject derivatives directory
-	subDir_bids="${bidsDir}/${sub}/func"
-	subDir_deriv="${derivDir}/${sub}/func"
-	scan_file="${sub}_scans.tsv"
+	# define subject derivatives directory depending on whether data are organized in session folders
+	if [[ ${sessions} == 'yes' ]]
+	then
+		subDir_bids="${bidsDir}/sub-${sub}/ses-01/func"
+		subDir_deriv="${derivDir}/sub-${sub}/ses-01/func"
+		scan_file="sub-${sub}_ses-01_scans.tsv"
+	else
+		subDir_bids="${bidsDir}/sub-${sub}/func"
+		subDir_deriv="${derivDir}/sub-${sub}/func"
+		scan_file="sub-${sub}_scans.tsv"
+	fi
 
 	# create scan.tsv file for each subject who has functional data
 	if [ -d ${subDir_bids} ] # if the subject has a functional data folder

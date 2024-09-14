@@ -43,6 +43,7 @@ Usage() {
 if [[ ! "$PWD" =~ "/RichardsonLab/" ]]; 
 then Usage
 fi
+
 # check that inputs are expected file types
 if [ ! ${pipeline##*.} == "py" ]
 then
@@ -98,12 +99,6 @@ projDir=`cat ../../PATHS.txt`
 singularityDir="${projDir}/singularity_images"
 codeDir="${projDir}/scripts/06.first_level"
 outDir="${projDir}/analysis/${proj_name}/${analysis_name}"
-
-# convert the singularity image to a sandbox if it doesn't already exist to avoid having to rebuild on each run
-# if [ ! -d ${singularityDir}/nipype_sandbox ]
-# then
-	# singularity build --sandbox ${singularityDir}/nipype_sandbox ${singularityDir}/nipype_nilearn.simg
-# fi
 
 # create working and output directories if they don't exist
 if [ ! -d ${outDir} ] || [ ! -d ${outDir}/processing ] &&  [ ${pipeline} != 'define_fROIs.py' ]

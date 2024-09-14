@@ -49,13 +49,13 @@ do
 	# define subject derivatives directory depending on whether data are organized in session folders
 	if [[ ${sessions} == 'yes' ]]
 	then
-		subDir_bids="${bidsDir}/sub-${sub}/ses-01/func"
-		subDir_deriv="${derivDir}/sub-${sub}/ses-01/func"
-		scan_file="sub-${sub}_ses-01_scans.tsv"
+		subDir_bids="${bidsDir}/${sub}/ses-01/func"
+		subDir_deriv="${derivDir}/${sub}/ses-01/func"
+		scan_file="${sub}_ses-01_scans.tsv"
 	else
-		subDir_bids="${bidsDir}/sub-${sub}/func"
-		subDir_deriv="${derivDir}/sub-${sub}/func"
-		scan_file="sub-${sub}_scans.tsv"
+		subDir_bids="${bidsDir}/${sub}/func"
+		subDir_deriv="${derivDir}/${sub}/func"
+		scan_file="${sub}_scans.tsv"
 	fi
 
 	# create scan.tsv file for each subject who has functional data

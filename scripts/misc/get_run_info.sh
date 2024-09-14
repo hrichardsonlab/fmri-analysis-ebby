@@ -4,7 +4,7 @@
 # GET INFORMATION FOR EACH FUNCTIONAL RUN
 ################################################################################
 
-# usage documentation - shown if no text file is provided or if script is run outside EBC directory
+# usage documentation - shown if no text file is provided or if script is run outside RichardsonLab directory
 Usage() {
 	echo
 	echo
@@ -12,16 +12,16 @@ Usage() {
 	echo "./get_run_info.sh <list of subjects>"
 	echo
 	echo "Example:"
-	echo "./get_run_info.sh TEBC-5y_subjs.txt"
+	echo "./get_run_info.sh KMVPA_subjs.txt"
 	echo
-	echo "TEBC-5y_subjs.txt is a file containing the participants to check:"
+	echo "KMVPA_subjs.txt is a file containing the participants to check:"
 	echo "001"
 	echo "002"
 	echo "..."
 	echo
 	echo
-	echo "This script must be run within the /EBC/ directory on the server due to space requirements."
-	echo "The script will terminiate if run outside of the /EBC/ directory."
+	echo "This script must be run within the /RichardsonLab/ directory on the server due to space requirements."
+	echo "The script will terminiate if run outside of the /RichardsonLab/ directory."
 	echo
 	echo "Script created by Melissa Thye"
 	echo
@@ -29,37 +29,28 @@ Usage() {
 }
 [ "$1" = "" ] && Usage
 
-# if the script is run outside of the EBC directory (e.g., in home directory where space is limited), terminate the script and show usage documentation
-if [[ ! "$PWD" =~ "/EBC/" ]]
+# if the script is run outside of the RichardsonLab directory (e.g., in home directory where space is limited), terminate the script and show usage documentation
+if [[ ! "$PWD" =~ "/RichardsonLab/" ]]; 
 then Usage
 fi
 
-# indicate whether session folders are used (always 'yes' for EBC data)
-sessions='yes'
+# indicate whether session folders are used
+sessions='no'
 
 # define directories
 projDir=`cat ../../PATHS.txt`
 qcDir="${projDir}/analysis"
 
-# extract sample from list of subjects filename (i.e., are these pilot or HV subjs)
-sample=` basename $1 | cut -d '-' -f 3 | cut -d '.' -f 1 `
-cohort=` basename $1 | cut -d '_' -f 1 `
+# extract study name from list of subjects filename
+study=` basename $1 | cut -d '_' -f 1 `
 
-# define data directories depending on sample information
-if [[ ${sample} == 'pilot' ]]
-then
-	bidsDir="/EBC/preprocessedData/${cohort}/BIDs_data/pilot"
-elif [[ ${sample} == 'HV' ]]
-then
-	bidsDir="/EBC/preprocessedData/${cohort}-adultpilot/BIDs_data"
-else
-	bidsDir="/EBC/preprocessedData/${cohort}/BIDs_data"
-fi
+# define data directories depending on study information
+bidsDir="/RichardsonLab/preprocessedData/${study}"
 
 # print confirmation of sample and directory
-echo "Getting run information for" ${sample} "participants..."
+echo "Getting run information for" ${study} "participants..."
 
-# create data checking directory if it doesn't exist
+# create QC directory if they don't exist
 if [ ! -d ${qcDir} ]
 then 
 	mkdir -p ${qcDir}
@@ -81,9 +72,9 @@ do
 	# define subject BIDS directory depending on whether data are organized in session folders
 	if [[ ${sessions} == 'yes' ]]
 	then
-		subDir="${bidsDir}/sub-${sub}/ses-01/func"
+		subDir="${bidsDir}/${sub}/ses-01/func"
 	else
-		subDir="${bidsDir}/sub-${sub}/func"
+		subDir="${bidsDir}/${sub}/func"
 	fi
 	
 	# check whether subject has functional data
@@ -96,7 +87,7 @@ do
 		awk '{$1=$1};1' ${qcDir}/tmp.tsv >> ${qcDir}/run_info.tsv
 		rm ${qcDir}/tmp.tsv
 	else
-		echo "No functional data found for sub-${sub}..."
+		echo "No functional data found for ${sub}..."
 	fi
 	
 done <$1

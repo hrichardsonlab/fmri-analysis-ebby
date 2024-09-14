@@ -22,7 +22,7 @@ from nilearn import masking
 import nilearn
 import shutil
 
-def process_subject(projDir, sharedDir, resultsDir, sub, runs, task, events, splithalves, search_spaces, match_events, template, top_nvox):
+def process_subject(projDir, sharedDir, resultsDir, sub, runs, task, contrast_opts, splithalves, search_spaces, match_events, template, top_nvox):
 
     # define search spaces dictionary
     roi_dict = {'lEBA':'body', 'rEBA':'body',
@@ -131,8 +131,8 @@ def process_subject(projDir, sharedDir, resultsDir, sub, runs, task, events, spl
                         mask_bin.to_filename(resampled_file)
                 
                 # for each contrast
-                for c in events:
-                    if match_events == 'yes' and search_spaces[m].lower() not in c: # if the search space (lowercase) is contained within the events specified
+                for c in contrast_opts:
+                    if match_events == 'yes' and search_spaces[m].lower() not in c: # if the search space (lowercase) is contained within the contrast_opts specified
                         print('Skipping {} search space for the {} contrast'.format(search_spaces[m], c))
                     else: 
                         print('Defining fROI using top {} voxels within {} contrast'.format(top_nvox, c))
@@ -147,7 +147,7 @@ def process_subject(projDir, sharedDir, resultsDir, sub, runs, task, events, spl
                         # masked_data[masked_data == 0.00000000] = np.nan
 
                         # save masked file (optional data checking step)
-                        # masked_img_file = op.join(froiDir, '{}_run-{:02d}_splithalf-{:02d}_{}_{}-masked.nii.gz'.format(sub, r, s, search_spaces[m], c))
+                        # masked_img_file = op.join(froiDir, '{}_run-{:03d}_splithalf-{:02d}_{}_{}-masked.nii.gz'.format(sub, r, s, search_spaces[m], c))
                         # masked_img.to_filename(masked_img_file)
                         
                         # get top voxels
@@ -167,8 +167,8 @@ def process_subject(projDir, sharedDir, resultsDir, sub, runs, task, events, spl
                         if r == 0:
                             sub_roi_file = op.join(froiDir, '{}_task-{}_splithalf-{:02d}_{}_{}_top{}.nii.gz'.format(sub, task, s, search_spaces[m], c, top_nvox))
                         else:
-                            # sub_roi_file = op.join(froiDir, '{}_run-{:02d}_splithalf-{:02d}_{}-{}_{}_top{}.nii.gz'.format(sub, r, s, network, search_spaces[m], c, top_nvox)) # include network in file output name
-                            sub_roi_file = op.join(froiDir, '{}_task-{}_run-{:02d}_splithalf-{:02d}_{}_{}_top{}.nii.gz'.format(sub, task, r, s, search_spaces[m], c, top_nvox))
+                            # sub_roi_file = op.join(froiDir, '{}_run-{:03d}_splithalf-{:02d}_{}-{}_{}_top{}.nii.gz'.format(sub, r, s, network, search_spaces[m], c, top_nvox)) # include network in file output name
+                            sub_roi_file = op.join(froiDir, '{}_task-{}_run-{:03d}_splithalf-{:02d}_{}_{}_top{}.nii.gz'.format(sub, task, r, s, search_spaces[m], c, top_nvox))
                         sub_froi.to_filename(sub_roi_file)
 
 # define command line parser function
@@ -214,14 +214,16 @@ def main(argv=None):
     resultsDir=config_file.loc['resultsDir',1]
     task=config_file.loc['task',1]
     splithalf=config_file.loc['splithalf',1]
-    events=config_file.loc['events',1].replace(' ','').split(',')
+    #events=config_file.loc['events',1].replace(' ','').split(',')
+    contrast_opts=config_file.loc['contrast',1].replace(' ','').split(',')
     search_spaces=config_file.loc['search_spaces',1].replace(' ','').split(',')
     match_events=config_file.loc['match_events',1]
     template=config_file.loc['template',1]
     top_nvox=int(config_file.loc['top_nvox',1])
     
     # lowercase events to avoid case errors - allows flexibility in how users specify events in config and contrasts files
-    events = [e.lower() for e in events]
+    #events = [e.lower() for e in events]
+    contrast_opts = [c.lower() for c in contrast_opts]
     
     if splithalf == 'yes':
         splithalves = [1,2]
@@ -257,7 +259,7 @@ def main(argv=None):
             sub_runs=list(map(int, sub_runs)) # convert to integers     
         
         # create a process_subject workflow with the inputs defined above
-        process_subject(args.projDir, sharedDir, resultsDir, sub, sub_runs, task, events, splithalves, search_spaces, match_events, template, top_nvox)
+        process_subject(args.projDir, sharedDir, resultsDir, sub, sub_runs, task, contrast_opts, splithalves, search_spaces, match_events, template, top_nvox)
 
 # execute code when file is run as script (the conditional statement is TRUE when script is run in python)
 if __name__ == '__main__':

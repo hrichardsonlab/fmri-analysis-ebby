@@ -19,27 +19,27 @@ Usage() {
     echo "./run_second-level.sh <pipeline script> <configuration file name> <list of subjects>"
     echo
     echo "Example:"
-    echo "./run_second-level.sh secondlevel_pipeline.py config-pixar_mind-body.tsv list.txt"
+    echo "./run_second-level.sh secondlevel_pipeline.py config-kmvpa_mental-physical.tsv KMVPA_subjs.txt"
     echo
 	echo "the config file name (not path!) should be provided"
 	echo
-    echo "list.txt is a file containing the participants to process:"
+    echo "KMVPA_subjs.txt is a file containing the participants to process:"
     echo "001"
     echo "002"
 	echo "..."
     echo
 	echo
-	echo "This script must be run within the /EBC/ directory on the server due to space requirements."
-	echo "The script will terminiate if run outside of the /EBC/ directory."
+	echo "This script must be run within the /RichardsonLab/ directory on the server due to space requirements."
+	echo "The script will terminiate if run outside of the /RichardsonLab/ directory."
 	echo
-    echo "Script created by Melissa Thye"
-    echo
-    exit
+	echo "Script created by Melissa Thye"
+	echo
+	exit
 }
 [ "$1" = "" ] | [ "$2" = "" ] | [ "$3" = "" ] && Usage
 
-# if the script is run outside of the EBC directory (e.g., in home directory where space is limited), terminate the script and show usage documentation
-if [[ ! "$PWD" =~ "/EBC/" ]]
+# if the script is run outside of the RichardsonLab directory (e.g., in home directory where space is limited), terminate the script and show usage documentation
+if [[ ! "$PWD" =~ "/RichardsonLab/" ]]; 
 then Usage
 fi
 
@@ -50,7 +50,7 @@ then
 	echo "The pipeline script was not found."
 	echo "The script must be submitted with (1) a pipeline script, (2) a configuration file name, and (3) a subject list as in the example below."
 	echo
-	echo "./run_second-level.sh secondlevel_pipeline.py config-events.tsv list.txt"
+	echo "./run_second-level.sh secondlevel_pipeline.py config-kmvpa_mental-physical.tsv KMVPA_subjs.txt"
 	echo
 	
 	# end script and show full usage documentation
@@ -63,7 +63,7 @@ then
 	echo "The configuration file was not found."
 	echo "The script must be submitted with (1) a pipeline script, (2) a configuration file name, and (3) a subject list as in the example below."
 	echo
-	echo "./run_second-level.sh secondlevel_pipeline.py config-events.tsv list.txt"
+	echo "./run_second-level.sh secondlevel_pipeline.py config-kmvpa_mental-physical.tsv KMVPA_subjs.txt"
 	echo
 	
 	# end script and show full usage documentation	
@@ -76,18 +76,19 @@ then
 	echo "The list of participants was not found."
 	echo "The script must be submitted with (1) a pipeline script, (2) a configuration file name, and (3) a subject list as in the example below."
 	echo
-	echo "./run_second-level.sh secondlevel_pipeline.py config-events.tsv list.txt"
+	echo "./run_second-level.sh secondlevel_pipeline.py config-kmvpa_mental-physical.tsv KMVPA_subjs.txt"
 	echo
 	
 	# end script and show full usage documentation	
 	Usage
 fi
 
-# define pipeline, configuration options, subjects, and runs from files passed in script call
+# define pipeline, configuration options and subjects from files passed in script call
 pipeline=$1
 config=$2
-subjs=$(cat $3 | awk '{print $1}') 
-runs=$(cat $3 | awk '{print $2}') 
+subjs=$(cat $3 | awk 'NR>1 {print $1}') 
+sub_file=$(readlink -f $3)
+runs=$(cat $3 | awk ' NR>1{print $2}') 
 
 # extract project and analysis name from config file
 proj_name=` basename ${config} | cut -d '-' -f 2 | cut -d '_' -f 1 ` # name provided after hyphen and before underscore
@@ -98,12 +99,6 @@ projDir=`cat ../../PATHS.txt`
 singularityDir="${projDir}/singularity_images"
 codeDir="${projDir}/scripts/07.second_level"
 outDir="${projDir}/analysis/${proj_name}/${analysis_name}"
-
-# convert the singularity image to a sandbox if it doesn't already exist to avoid having to rebuild on each run
-if [ ! -d ${singularityDir}/nipype_sandbox ]
-then
-	singularity build --sandbox ${singularityDir}/nipype_sandbox ${singularityDir}/nipype_nilearn.simg
-fi
 
 # define output logfile
 if [[ ${pipeline} == *'pipeline.py'* ]]
@@ -124,10 +119,11 @@ echo "Running" ${pipeline} "for..."
 echo "${subjs}"
 
 # run second-level workflow using script specified in script call
-singularity exec -C -B /EBC:/EBC						\
-${singularityDir}/nipype_sandbox						\
+singularity exec -B /RichardsonLab:/RichardsonLab		\
+${singularityDir}/nipype_nilearn.simg					\
 /neurodocker/startup.sh python ${codeDir}/${pipeline}	\
 -p ${projDir}											\
 -s ${subjs}												\
+-f ${sub_file}											\
 -r ${runs}												\
 -c ${projDir}/${config} | tee ${log_file}

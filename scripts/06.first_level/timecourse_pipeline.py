@@ -79,7 +79,7 @@ def create_timecourse_workflow(sharedDir, projDir, derivDir, workDir, outDir, su
         
         # add run info to file prefix if necessary
         if run_id != 0:
-            prefix = '{}_run-{:02d}'.format(prefix, run_id)
+            prefix = '{}_run-{:03d}'.format(prefix, run_id)
         
         # identify mni file based on whether data are multiecho
         if multiecho == 'yes': # if multiecho sequence, look for outputs in tedana folder
@@ -92,7 +92,7 @@ def create_timecourse_workflow(sharedDir, projDir, derivDir, workDir, outDir, su
         confound_file = op.join(funcDir, '{}_desc-confounds_timeseries.tsv'.format(prefix))
         
         if run_id != 0: # if run info is in filename
-            art_file = op.join(funcDir, 'art', '{}{:02d}'.format(task, run_id), 'art.{}_space-MNI152NLin2009cAsym_res-2_desc-preproc_bold_outliers.txt'.format(prefix))
+            art_file = op.join(funcDir, 'art', '{}{:03d}'.format(task, run_id), 'art.{}_space-MNI152NLin2009cAsym_res-2_desc-preproc_bold_outliers.txt'.format(prefix))
         else: # if no run info is in file name
             art_file = op.join(funcDir, 'art', '{}'.format(task), 'art.{}_space-MNI152NLin2009cAsym_res-2_desc-preproc_bold_outliers.txt'.format(prefix))        
 
@@ -242,7 +242,7 @@ def create_timecourse_workflow(sharedDir, projDir, derivDir, workDir, outDir, su
         # make art directory and specify splithalf outlier file name
         if run_id != 0:
             run_abrv = 'run{}'.format(run_id)
-            run_full = 'run-{:02d}'.format(run_id)
+            run_full = 'run-{:03d}'.format(run_id)
             outlier_file_prefix = '{}_task-{}_{}'.format(sub, task, run_full)
         else:
             run_abrv = 'run1'
@@ -277,10 +277,10 @@ def create_timecourse_workflow(sharedDir, projDir, derivDir, workDir, outDir, su
         
         # generate vector of volume indices (where inclusion means to retain volume) to use for scrubbing
         vol_indx = np.arange(motion_params.shape[0], dtype=np.int64)
-        
+
         # if art regressor was included in regressor_opts list in config file        
         if 'art' in regressor_opts:
-            print('ART identified motion spikes will be scrubbed from data')
+            print('ART identified motion spikes will be scrubbed from data')             
             if np.shape(outliers)[0] != 0: # if there are outlier volumes
                 # remove excluded volumes from vec
                 vol_indx = np.delete(vol_indx, [outliers])
@@ -403,7 +403,7 @@ def create_timecourse_workflow(sharedDir, projDir, derivDir, workDir, outDir, su
         # define run name depending on whether run info is in file name
         if run_id != 0:
             run_abrv = 'run{}'.format(run_id)
-            run_full = 'run-{:02d}'.format(run_id)
+            run_full = 'run-{:03d}'.format(run_id)
         else: # if no run info is in filename, then results are saved under 'run1'
             run_abrv = 'run1'
             run_full = 'run-01'
@@ -411,18 +411,21 @@ def create_timecourse_workflow(sharedDir, projDir, derivDir, workDir, outDir, su
         # make output directory
         if splithalf_id != 0:
             denoiseDir = op.join(subDir, 'denoised', '{}_splithalf{}'.format(run_abrv, splithalf_id))
+            split_name = '_splithalf-{:02d}_'.format(splithalf_id)
         else:
             denoiseDir = op.join(subDir, 'denoised', '{}'.format(run_abrv))
+            split_name = '_'
         
         os.makedirs(denoiseDir, exist_ok=True)
      
         # define output file names depending on whether run info is in file name
         if run_id != 0:
-            denoise_file = op.join(denoiseDir, '{}_task-{}_{}_splithalf-{:02d}_denoised_bold.nii.gz'.format(sub, task, run_full, splithalf_id))
-            pad_file = op.join(denoiseDir, '{}_task-{}_{}_splithalf-{:02d}_denoised_padded_bold.nii.gz'.format(sub, task, run_full, splithalf_id))
+            denoise_file = op.join(denoiseDir, '{}_task-{}_{}{}denoised_bold.nii.gz'.format(sub, task, run_full, split_name))
+            pad_file = op.join(denoiseDir, '{}_task-{}_{}{}denoised_padded_bold.nii.gz'.format(sub, task, run_full, split_name))
+        
         else: # if no run info is in filename, then results are saved under 'run1'
-            denoise_file = op.join(denoiseDir, '{}_task-{}_splithalf-{:02d}_denoised_bold.nii.gz'.format(sub, task, splithalf_id))
-            pad_file = op.join(denoiseDir, '{}_task-{}_splithalf-{:02d}_denoised_padded_bold.nii.gz'.format(sub, task, splithalf_id))
+            denoise_file = op.join(denoiseDir, '{}_task-{}{}denoised_bold.nii.gz'.format(sub, task, split_name))
+            pad_file = op.join(denoiseDir, '{}_task-{}{}denoised_padded_bold.nii.gz'.format(sub, task, split_name))
         
         # the smoothing node returns a list object but clean_img needs a path to the file
         if isinstance(imgs, list):
@@ -542,7 +545,7 @@ def create_timecourse_workflow(sharedDir, projDir, derivDir, workDir, outDir, su
         
         # define run name depending on whether run info is in file name
         if run_id != 0:
-            run_full = 'run-{:02d}'.format(run_id)
+            run_full = 'run-{:03d}'.format(run_id)
             run_prefix = op.join(tcDir, '{}_task-{}_{}'.format(sub, task, run_full))
         else: # if no run info is in filename, then results are saved under 'run1'
             run_full = 'run-01'
@@ -655,7 +658,7 @@ def create_timecourse_workflow(sharedDir, projDir, derivDir, workDir, outDir, su
     return wf
 
 # define function to extract subject-level data for workflow
-def process_subject(layout, sharedDir, projDir, derivDir, outDir, workDir, 
+def process_subject(TR, sharedDir, projDir, derivDir, outDir, workDir, 
                     sub, task, ses, multiecho, sub_runs, regressor_opts, mask_opts, smoothing_kernel_size,resultsDir,smoothDir, hpf, filter_opt, detrend, standardize, template, extract_opt, dropvols, splithalf):    
     """Grab information and start nipype workflow
     We want to parallelize runs for greater efficiency
@@ -694,7 +697,7 @@ def process_subject(layout, sharedDir, projDir, derivDir, outDir, workDir,
     
     # remove runs tagged with excessive motion, that are for a different task, or aren't in run list in the config file
     if sub_runs != 0:
-        keepruns = scans_df[(scans_df.MotionExclusion == False) & (scans_df.task == task) & (scans_df.run.isin(['{:02d}'.format(r) for r in sub_runs]))].run
+        keepruns = scans_df[(scans_df.MotionExclusion == False) & (scans_df.task == task) & (scans_df.run.isin(['{:03d}'.format(r) for r in sub_runs]))].run
     else:
         keepruns = scans_df[(scans_df.MotionExclusion == False) & (scans_df.task == task)].run.fillna(value='0')    
 
@@ -711,10 +714,6 @@ def process_subject(layout, sharedDir, projDir, derivDir, outDir, workDir,
     # if the participant didn't have any runs for this task or all runs were excluded due to motion
     if not keepruns:
         raise FileNotFoundError('No included bold {} runs found for {}'.format(task, sub))
-   
-    # extract TR info from bidsDir bold json files (assumes TR is same across runs)
-    epi = layout.get(subject=sub, suffix='bold', task=task, return_type='file')[0] # take first file
-    TR = layout.get_metadata(epi)['RepetitionTime'] # extract TR field
     
     # delete prior processing directories because cache files can interfere with workflow
     subworkDir = op.join(workDir, '{}_task-{}_timecourses'.format(sub, task))
@@ -852,6 +851,10 @@ def main(argv=None):
     # this is necessary because the pipeline reads the functional json files that have TR info
     # the derivDir (where fMRIPrep outputs are) doesn't have json files with this information, so getting the layout of that directory will result in an error
     layout = BIDSLayout(bidsDir)
+    
+    # extract TR info from bidsDir bold json files (assumes TR is same across runs)
+    epi = layout.get(suffix='bold', task=task, return_type='file')[0] # take first file
+    TR = layout.get_metadata(epi)['RepetitionTime'] # extract TR field    
 
     # define subjects - if none are provided in the script call, they are extracted from the BIDS directory layout information
     subjects = args.subjects if args.subjects else layout.get_subjects()
@@ -867,7 +870,7 @@ def main(argv=None):
             sub_runs=list(map(int, sub_runs)) # convert to integers        
               
         # create a process_subject workflow with the inputs defined above
-        wf = process_subject(layout, sharedDir, args.projDir, derivDir, outDir, workDir, sub,
+        wf = process_subject(TR, sharedDir, args.projDir, derivDir, outDir, workDir, sub,
                              task, ses, multiecho, sub_runs, regressor_opts, mask_opts, smoothing_kernel_size, resultsDir, smoothDir, hpf, filter_opt, detrend, standardize, template, extract_opt, dropvols, splithalf)
    
         # configure workflow options

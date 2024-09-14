@@ -187,7 +187,8 @@ def mark_motion_exclusions(sub, derivDir, qcDir, ses, fd_thresh, dvars_thresh, a
 
             # sum of bools is number of true values. count of bool array is length
             # mark run for exclusion if more than specified number of vols are identified as motion using FD, DVARS, or ART timepoints
-            if (FDoverlim.sum() / FDoverlim.count() >= ntmpts_exclude) or (DVARSoverlim.sum() / DVARSoverlim.count() >= ntmpts_exclude) or (nArt / nVols >= ntmpts_exclude):
+            # or (DVARSoverlim.sum() / DVARSoverlim.count() >= ntmpts_exclude)
+            if (FDoverlim.sum() / FDoverlim.count() >= ntmpts_exclude) or (nArt / nVols >= ntmpts_exclude):
                 df_merge.loc[index, 'MotionExclusion'] = True
                 print('Motion Exclusion: ' + row['filename'])
         

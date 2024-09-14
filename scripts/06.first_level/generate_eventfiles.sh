@@ -16,7 +16,7 @@
 Usage() {
 	echo
 	echo "Usage:"
-	echo "./generate_eventfiles.sh <list of subjects> <task>"
+	echo "./generate_eventfiles.sh <list of subjects> <study>"
 	echo
 	echo "Example:"
 	echo "./generate_eventfiles.sh KMVPA_subjs.txt KMVPA"

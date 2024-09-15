@@ -54,7 +54,7 @@ def process_subject(projDir, sharedDir, resultsDir, sub, runs, task, contrast_op
                 roi_file = glob.glob(op.join(projDir, 'files', 'search_spaces', '{}/{}*.nii.gz'.format(network, m)))
         
         roi_masks.append(roi_file)
-    
+        
     # define combined run directory for this subject
     combinedDir = op.join(resultsDir, '{}'.format(sub), 'model', 'combined_runs')
     

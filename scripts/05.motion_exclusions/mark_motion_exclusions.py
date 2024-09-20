@@ -28,14 +28,14 @@ def mark_motion_exclusions(sub, derivDir, qcDir, ses, fd_thresh, dvars_thresh, a
         prefix = '{}'.format(sub)   
     
     # copy fMRIPrep output images to data checking directory for QC
-    for T1_svg in glob.glob('{}/{}/figures/*_desc-reconall_T1w.svg'.format(derivDir, sub)):
-        shutil.copy(T1_svg, qcDir)
-    for MNI_svg in glob.glob('{}/{}/figures/*_space-MNI152NLin2009cAsym_desc-preproc_T1w.svg'.format(derivDir, sub)):
-        shutil.copy(MNI_svg, qcDir)
-    for sdc_svg in glob.glob('{}/{}/figures/*_desc-sdc_bold.svg'.format(derivDir, sub)):
-        shutil.copy(sdc_svg, qcDir)
-    for coreg_svg in glob.glob('{}/{}/figures/*_desc-coreg_bold.svg'.format(derivDir, sub)):
-        shutil.copy(coreg_svg, qcDir)
+    # for T1_svg in glob.glob('{}/{}/figures/*_desc-reconall_T1w.svg'.format(derivDir, sub)):
+        # shutil.copy(T1_svg, qcDir)
+    # for MNI_svg in glob.glob('{}/{}/figures/*_space-MNI152NLin2009cAsym*T1w.svg'.format(derivDir, sub)):
+        # shutil.copy(MNI_svg, qcDir)
+    # for sdc_svg in glob.glob('{}/{}/figures/*_desc-sdc_bold.svg'.format(derivDir, sub)):
+        # shutil.copy(sdc_svg, qcDir)
+    # for coreg_svg in glob.glob('{}/{}/figures/*_desc-coreg_bold.svg'.format(derivDir, sub)):
+        # shutil.copy(coreg_svg, qcDir)
             
     # read the scans.tsv file into a dataframe, then create one useful dataframe
     scansfiles = glob.glob(op.join(funcDir, '*_scans.tsv'))

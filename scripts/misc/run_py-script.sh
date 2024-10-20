@@ -40,13 +40,13 @@ then Usage
 fi
 
 # check that inputs are expected file types
-if [ ! ${pipeline##*.} == "py" ]
+if [ ! ${1##*.} == "py" ]
 then
 	echo
 	echo "The pipeline script was not found."
 	echo "The script must be submitted with (1) a python script and (2) a configuration file name as in the example below."
 	echo
-	echo "./run_py-script.sh resample_ROIs.py config-kmvpa_mental-physical.tsv"
+	echo "./run_py-script.sh resample_ROIs.py config-pixar_mind-body.tsv"
 	echo
 	
 	# end script and show full usage documentation
@@ -59,7 +59,7 @@ then
 	echo "The configuration file was not found."
 	echo "The script must be submitted with (1) a python script and (2) a configuration file name as in the example below."
 	echo
-	echo "./run_py-script.sh resample_ROIs.py config-kmvpa_mental-physical.tsv"
+	echo "./run_py-script.sh resample_ROIs.py config-pixar_mind-body.tsv"
 	echo
 	
 	# end script and show full usage documentation	

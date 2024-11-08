@@ -24,7 +24,7 @@ import glob
 import shutil
 
 # define average runs workflow function
-def combine_runs_workflow(projDir, derivDir, resultsDir, subDir, workDir, sub, ses, task, runs, events, contrast_opts, splithalf_id, name='{}_task-{}_combineruns'):
+def combine_runs_workflow(projDir, derivDir, resultsDir, subDir, workDir, sub, ses, task, runs, events, contrast_opts, splithalf_id, space_name, name='{}_task-{}_combineruns'):
     """Processing pipeline"""
     
     # initialize workflow
@@ -38,7 +38,7 @@ def combine_runs_workflow(projDir, derivDir, resultsDir, subDir, workDir, sub, s
         combinedDir = op.join(subDir, 'model', 'combined_runs', 'splithalf{}'.format(splithalf_id))
     
     # identify each run
-    def get_runs(subDir, derivDir, sub, ses, task):
+    def get_runs(subDir, derivDir, sub, ses, task, space_name):
         from nipype import SelectFiles, Node
         import os
         import os.path as op
@@ -64,6 +64,7 @@ def combine_runs_workflow(projDir, derivDir, resultsDir, subDir, workDir, sub, s
         gr.inputs.base_directory = subDir
         gr.inputs.subj = sub
         gr.inputs.task = task
+        gr.inputs.space_name = space_name
         
         return gr.run().outputs
     

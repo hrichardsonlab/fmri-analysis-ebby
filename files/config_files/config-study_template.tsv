@@ -4,6 +4,7 @@ derivDir
 resultsDir	
 smoothDir	
 resampleDir	
+space	MNI
 task	
 sessions	no
 multiecho	no

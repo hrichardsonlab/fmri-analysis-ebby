@@ -47,12 +47,12 @@ def combine_runs_workflow(projDir, derivDir, resultsDir, subDir, workDir, sub, s
         if ses != 'no': # if session was provided
             # define path to preprocessed mask data (subject derivatives func folder)
             funcDir = op.join(derivDir, '{}'.format(sub), 'ses-{}'.format(ses), 'func')
-            mni_mask = op.join(funcDir, '{}_ses-{}_space-MNI152NLin2009cAsym_res-2_desc-brain_mask_allruns-BOLDmask.nii.gz'.format(sub, ses))
-            
+            mni_mask = op.join(funcDir, '{}_ses-{}_space-{}_desc-brain_mask_allruns-BOLDmask.nii.gz'.format(sub, ses, space_name))
+
         else: # if session was 'no'
             # define path to preprocessed mask data (subject derivatives func folder)
             funcDir = op.join(derivDir, '{}'.format(sub), 'func')
-            mni_mask = op.join(funcDir, '{}_space-MNI152NLin2009cAsym_res-2_desc-brain_mask_allruns-BOLDmask.nii.gz'.format(sub))   
+            mni_mask = op.join(funcDir, '{}_space-{}_desc-brain_mask_allruns-BOLDmask.nii.gz'.format(sub, space_name))
         
         # copy mask file to subject resultsDir so it can be easily picked up in next step
         shutil.copy(mni_mask, op.join(subDir, 'preproc'))
@@ -237,7 +237,7 @@ def combine_runs_workflow(projDir, derivDir, resultsDir, subDir, workDir, sub, s
     return wf
     
 # define function to process subject level data 
-def process_subject(projDir, derivDir, resultsDir, workDir, sub, ses, task, sub_runs, events, contrast_opts, splithalf_id):
+def process_subject(projDir, derivDir, resultsDir, workDir, sub, ses, task, sub_runs, events, contrast_opts, splithalf_id, space_name):
 
     # define subject output directory
     subDir = op.join(resultsDir, '{}'.format(sub))
@@ -252,7 +252,7 @@ def process_subject(projDir, derivDir, resultsDir, workDir, sub, ses, task, sub_
         shutil.rmtree(subworkDir)
         
     # call timecourse workflow with extracted subject-level data
-    wf = combine_runs_workflow(projDir, derivDir, resultsDir, subDir, workDir, sub, ses, task, sub_runs, events, contrast_opts, splithalf_id)  
+    wf = combine_runs_workflow(projDir, derivDir, resultsDir, subDir, workDir, sub, ses, task, sub_runs, events, contrast_opts, splithalf_id, space_name)  
                         
     return wf
 
@@ -302,6 +302,7 @@ def main(argv=None):
     contrast_opts=config_file.loc['contrast',1].replace(' ','').split(',')
     events=list(set(config_file.loc['events',1].replace(' ','').replace(',','-').split('-')))
     splithalf=config_file.loc['splithalf',1]
+    space=config_file.loc['space',1]
     
     # define working directory
     workDir = op.join(resultsDir, 'processing')
@@ -314,6 +315,13 @@ def main(argv=None):
         splithalves = [1,2]
     else:
         splithalves = [0]
+    
+    if space == 'MNI':
+        space_name = 'MNI152NLin2009cAsym_res-2'
+        print('Pipeline will be run using outputs in {} space'.format(space_name))
+    if space == 'native':
+        space_name = 'T1w'
+        print('Pipeline will be run using outputs in {} space'.format(space_name))
     
     # identify analysis README file
     readme_file=op.join(resultsDir, 'README.txt')
@@ -332,7 +340,7 @@ def main(argv=None):
             sub_runs=list(map(int, sub_runs)) # convert to integers
                   
             # create a process_subject workflow with the inputs defined above
-            wf = process_subject(args.projDir, derivDir, resultsDir, workDir, sub, ses, task, sub_runs, events, contrast_opts, splithalf_id)
+            wf = process_subject(args.projDir, derivDir, resultsDir, workDir, sub, ses, task, sub_runs, events, contrast_opts, splithalf_id, space_name)
        
             # configure workflow options
             wf.config['execution'] = {'crashfile_format': 'txt',

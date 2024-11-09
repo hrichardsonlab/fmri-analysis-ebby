@@ -45,7 +45,7 @@ projDir=`cat ../../PATHS.txt`
 singularityDir="${projDir}/singularity_images"
 
 # define subjects from text document
-subjs=$(cat $1) 
+subjs=$(cat $1 | awk '{print $1}') 
 
 # extract study name from list of subjects filename
 study=` basename $1 | cut -d '_' -f 1 `

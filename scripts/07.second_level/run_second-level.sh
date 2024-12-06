@@ -16,16 +16,19 @@ Usage() {
     echo
 	echo
     echo "Usage:"
-    echo "./run_second-level.sh <pipeline script> <configuration file name> <list of subjects>"
+    echo "./run_second-level.sh <pipeline script> <configuration file name> <subject-condition list>"
     echo
     echo "Example:"
     echo "./run_second-level.sh secondlevel_pipeline.py config-kmvpa_mental-physical.tsv KMVPA_subjs.txt"
     echo
 	echo "the config file name (not path!) should be provided"
 	echo
-    echo "KMVPA_subjs.txt is a file containing the participants to process:"
-    echo "001"
-    echo "002"
+	echo "KMVPA_subjs.txt is a subject-condition file containing the participants, run info, group variable, and other covariates to process:"
+	echo "sub  runs group"
+	echo "001 1,2 A"
+	echo "002 1,2 B"
+	echo "003 1,2 B"
+	echo "004 1,2 A"
 	echo "..."
     echo
 	echo
@@ -48,10 +51,11 @@ if [ ! ${pipeline##*.} == "py" ]
 then
 	echo
 	echo "The pipeline script was not found."
-	echo "The script must be submitted with (1) a pipeline script, (2) a configuration file name, and (3) a subject list as in the example below."
+	echo "The script must be submitted with (1) a pipeline script, (2) a configuration file name, and (3) a subject-condition list as in the example below."
 	echo
 	echo "./run_second-level.sh secondlevel_pipeline.py config-kmvpa_mental-physical.tsv KMVPA_subjs.txt"
 	echo
+	echo "Make sure the subject list has column names and run and group information are included!"
 	
 	# end script and show full usage documentation
 	Usage
@@ -61,10 +65,11 @@ if [ ! ${2##*.} == "tsv" ]
 then
 	echo
 	echo "The configuration file was not found."
-	echo "The script must be submitted with (1) a pipeline script, (2) a configuration file name, and (3) a subject list as in the example below."
+	echo "The script must be submitted with (1) a pipeline script, (2) a configuration file name, and (3) a subject-condition list as in the example below."
 	echo
 	echo "./run_second-level.sh secondlevel_pipeline.py config-kmvpa_mental-physical.tsv KMVPA_subjs.txt"
 	echo
+	echo "Make sure the subject list has column names and run and group information are included!"
 	
 	# end script and show full usage documentation	
 	Usage
@@ -74,10 +79,11 @@ if [ ! ${3##*.} == "txt" ]
 then
 	echo
 	echo "The list of participants was not found."
-	echo "The script must be submitted with (1) a pipeline script, (2) a configuration file name, and (3) a subject list as in the example below."
+	echo "The script must be submitted with (1) a pipeline script, (2) a configuration file name, and (3) a subject-condition list as in the example below."
 	echo
 	echo "./run_second-level.sh secondlevel_pipeline.py config-kmvpa_mental-physical.tsv KMVPA_subjs.txt"
 	echo
+	echo "Make sure the subject list has column names and run and group information are included!"
 	
 	# end script and show full usage documentation	
 	Usage

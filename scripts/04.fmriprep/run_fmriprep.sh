@@ -99,6 +99,7 @@ do
 	--fd-spike-threshold 1												\
 	--dvars-spike-threshold 1.5											\
 	--output-space MNI152NLin2009cAsym:res-2 T1w						\
+	--return-all-components												\
 	--derivatives ${derivDir}											\
 	--stop-on-first-crash												\
 	-w ${singularityDir}												\

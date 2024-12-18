@@ -40,7 +40,7 @@ def compile_timecourses(projDir, resultsDir):
                 tc_name = timecourse.replace('whole_brain', 'wholebrain').split('sub-')[-1]
                 tc_name = tc_name.split('_mean_timecourse.csv')[0]
                 tc_name = tc_name.split('_')
-
+                
                 # extract ROI, run, and splithalf info from file name
                 if len(tc_name) == 5: # if splithalf
                     roi_name = tc_name[4]

@@ -83,10 +83,10 @@ def create_timecourse_workflow(sharedDir, projDir, derivDir, workDir, outDir, su
         
         # identify mni file based on whether data are multiecho
         if multiecho == 'yes': # if multiecho sequence, look for outputs in tedana folder
-            mni_file = op.join(funcDir, 'tedana/{}'.format(task), '{}_space-{}_desc-denoised_bold.nii.gz'.format(prefix, space_name))
+            mni_file = glob.glob(op.join(funcDir, 'tedana/{}'.format(task), '{}_space-{}*desc-denoised_bold.nii.gz'.format(prefix, space_name)))[0]
             print('Will use multiecho outputs from tedana: {}'.format(mni_file))
         else:            
-            mni_file = op.join(funcDir, '{}_space-{}_desc-preproc_bold.nii.gz'.format(prefix, space_name))
+            mni_file = glob.glob(op.join(funcDir, '{}_space-{}*desc-preproc_bold.nii.gz'.format(prefix, space_name)))[0]
 
         # grab the confound, MNI, and rapidart outlier file
         confound_file = op.join(funcDir, '{}_desc-confounds_timeseries.tsv'.format(prefix))
@@ -567,11 +567,12 @@ def create_timecourse_workflow(sharedDir, projDir, derivDir, workDir, outDir, su
         # define run name depending on whether run info is in file name
         if run_id != 0:
             run_full = 'run-{:03d}'.format(run_id)
-            run_prefix = op.join(tcDir, '{}_task-{}_{}'.format(sub, task, run_full))
         else: # if no run info is in filename, then results are saved under 'run1'
             run_full = 'run-01'
-            run_prefix = op.join(tcDir, '{}_task-{}'.format(sub, task))
-
+            #run_prefix = op.join(tcDir, '{}_task-{}'.format(sub, task))
+        
+        run_prefix = op.join(tcDir, '{}_task-{}_{}'.format(sub, task, run_full))
+        
         # extract timecourses for each ROI provided in config file
         for m, mask in enumerate(roi_masks):
 
@@ -616,17 +617,21 @@ def create_timecourse_workflow(sharedDir, projDir, derivDir, workDir, outDir, su
             # add splithalf info to output file name     
             if splithalf_id != 0:
                 if 'fROI' in mask_opts[m]:
+                    # extract fROI name
+                    froi = mask_opts[m].split('_')[0]
+                    
                     # extract contrast used to generate fROI from file name
                     contrast = roi_masks[m][0].split('_')[-2]
+                    
                     # get fROI splithalf info from roi mask and add to output file name
                     roi_splithalf = re.search('splithalf-(.+?)_', roi_masks[m][0]).group().split('_')[0]
-                                        
-                    tc_prefix = op.join('{}_splithalf-{:02d}_{}-{}-{}'.format(run_prefix, splithalf_id, mask_opts[m], contrast, roi_splithalf))
+                    
+                    tc_prefix = op.join('{}_splithalf-{:02d}_{}-{}-{}'.format(run_prefix, splithalf_id, froi, contrast, roi_splithalf))
                 else:
                     tc_prefix = op.join('{}_splithalf-{:02d}_{}'.format(run_prefix, splithalf_id, mask_opts[m]))
             else:
                 tc_prefix = op.join('{}_{}'.format(run_prefix, mask_opts[m]))
-            
+                
             # average data in mask if requested and add info to output file name
             if extract_opt == 'mean':
                 # average voxelwise timecourses
@@ -668,8 +673,8 @@ def create_timecourse_workflow(sharedDir, projDir, derivDir, workDir, outDir, su
                                           ('_splithalf_id_0', ''),
                                           ('_splithalf_id_', '_splithalf'),
                                           ('_smooth0/',''),
-                                          ('_roi',''),
-                                          ('MNI152NLin2009cAsym_res-2_desc','MNI')]          
+                                          #('MNI152NLin2009cAsym_res-2_desc','MNI'),
+                                          ('_roi','')]          
     
     # define where output files are saved
     wf.connect(mni_split, 'roi_file', sinker, 'preproc.@roi_file')
@@ -890,6 +895,10 @@ def main(argv=None):
 
     # for each subject in the list of subjects
     for index, sub in enumerate(subjects):
+        # check that run info was provided in subject list, otherwise throw an error
+        if not args.runs:
+            raise IOError('Run information missing. Make sure you are passing a subject-run list to the pipeline!')
+            
         # pass runs for this sub
         sub_runs=args.runs[index]
         sub_runs=sub_runs.replace(' ','').split(',') # split runs by separators

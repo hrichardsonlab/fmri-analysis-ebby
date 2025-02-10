@@ -60,7 +60,7 @@ def concat_masks(derivDir, sub, ses):
 
     # generate T1w mask
     if len(t1w_maskfiles) == 0: # if no mask files were found
-        print('No MNI space brain masks found for {}'.format(sub))
+        print('No native space brain masks found for {}'.format(sub))
     
     else: # if mni mask files were found
         t1w_basemask = t1w_maskfiles[0] # take the first mask file as the base image

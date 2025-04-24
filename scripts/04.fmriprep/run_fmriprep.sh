@@ -107,7 +107,7 @@ do
 
 	# move subject report and freesurfer output files to appropriate directories
 	mv ${derivDir}/*dseg.tsv ${derivDir}/sourcedata/freesurfer
-	mv ${derivDir}/sub-${NAME}.html ${derivDir}/sub-${NAME}
+	#mv ${derivDir}/sub-${NAME}.html ${derivDir}/sub-${NAME}
 	
 	# give other users permissions to created files
 	#chmod -R a+wrx ${derivDir}/sub-${NAME}

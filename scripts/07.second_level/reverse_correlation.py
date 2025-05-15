@@ -35,7 +35,7 @@ def process_timecourses(resultsDir, outDir, subjects, runs, task, TR, mask_id, s
         for run in sub_runs:
             # define file name based on whether run info is present
             if run == 'NA':
-                prefix = op.join(resultsDir, '{}'.format(sub), 'timecourses', '{}_task-{}'.format(sub, task))
+                prefix = op.join(resultsDir, '{}'.format(sub), 'timecourses', '{}_task-{}*'.format(sub, task))
             else:
                 prefix = op.join(resultsDir, '{}'.format(sub), 'timecourses', '{}_task-{}_run-{:02d}'.format(sub, task, int(run)))
             

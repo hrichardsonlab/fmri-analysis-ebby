@@ -6,7 +6,7 @@ smoothDir
 resampleDir	
 space	MNI
 task	
-sessions	01
+sessions	no
 multiecho	no
 FD_thresh	1
 DVARS_thresh	1.5

@@ -171,6 +171,13 @@ def create_timecourse_workflow(sharedDir, projDir, derivDir, workDir, outDir, su
                     roi_masks.append(roi_file)
                     print('Using {} fROI file from {}'.format(roi_name, roi_file))
             
+            # if group ROI was specified
+            elif 'group' in m:
+                roi_name = m.split('group-')[1]
+                roi_file = glob.glob(op.join(projDir, 'files', 'ROIs' , '{}*.nii.gz'.format(roi_name)))[0]
+                roi_masks.append(roi_file)
+                print('Using {} group defined file from {}'.format(roi_name, roi_file))  
+            
             # if a freesurfer ROI was specified
             elif 'FS' in m:
                 roi_name = m.split('FS-')[1]

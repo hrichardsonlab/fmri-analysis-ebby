@@ -4,6 +4,7 @@ Script to mask the contrast maps generated in firstlevel pipeline and extract me
 More information on what this script is doing - beyond the commented code - is provided on the lab's github wiki page
 
 """
+import sys
 import pandas as pd
 import numpy as np
 import argparse
@@ -247,6 +248,9 @@ def argparser():
 
 # define main function that parses the config file and runs the functions defined above
 def main(argv=None):
+    # don't buffer messages
+    sys.stdout = open(sys.stdout.fileno(), mode='w', buffering=1)
+    
     # call argparser function that defines command line inputs
     parser = argparser()
     args = parser.parse_args(argv) 

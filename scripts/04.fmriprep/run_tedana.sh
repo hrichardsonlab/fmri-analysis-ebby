@@ -5,7 +5,7 @@
 #
 # This script:
 # (1) generates a combined grey + white matter mask, registers this mask to EPI space, and combines the mask with the BOLD mask for optimal coverage of ventral ATL
-# (2) rus the preprocessed multi-echos output from fmriprep through tedana to denoise and optimally recombine them
+# (2) runs the preprocessed multi-echos output from fmriprep through tedana to denoise and optimally recombine them
 # (3) normalizes optimally combined data to MNI space
 #
 ################################################################################
@@ -15,61 +15,76 @@ Usage() {
 	echo
 	echo
 	echo "Usage:"
-	echo "./run_tedana.sh <list of subjects>"
+	echo "./run_tedana.sh <config file> <list of subjects>"
 	echo
 	echo "Example:"
-	echo "./run_tedana.sh fMRI_Semantics-subjs.txt"
+	echo "./run_tedana.sh config-pixar_mind-body.tsv open-pixar_subjs.txt"
 	echo
-	echo "fMRI_Semantics-subjs.txt is a file containing the participants to check:"
-	echo "001"
-	echo "002"
+	echo "open-pixar_subjs.txt is a file containing the participants to run fMRIPrep on:"
+	echo "sub-pixar001"
+	echo "sub-pixar002"
 	echo "..."
+	echo
 	echo
 	echo "Script created by Melissa Thye"
 	echo
 	exit
 }
-[ "$1" = "" ] && Usage
+[ "$1" = "" ] | [ "$2" = "" ] && Usage
 
 # if the script is run outside of the RichardsonLab directory (e.g., in home directory where space is limited), terminate the script and show usage documentation
 if [[ ! "$PWD" =~ "/RichardsonLab/" ]]; 
 then Usage
 fi
 
-if [ ! ${1##*.} == "txt" ]
+if [ ! ${1##*.} == "tsv" ]
 then
 	echo
-	echo "The list of participants was not found."
-	echo "The script must be submitted with a subject list as in the example below."
+	echo "The configuration file was not found."
+	echo "The script must be submitted with (1) a configuration file name and (2) a subject-run list as in the example below."
 	echo
-	echo "./run_tedana.sh fMRI_Semantics-subjs.txt"
-	echo
-	
+	echo "./run_tedana.sh config-pixar_mind-body.tsv open-pixar_subjs.txt"
+	echo	
 	# end script and show full usage documentation	
 	Usage
 fi
 
-# indicate whether session folders are used
-sessions='no'
-
-# define subjects from text document
-subjs=$(cat $1 | awk '{print $1}') 
-
-# extract sample from list of subjects filename
-study=` basename $1 | cut -d '-' -f 1 `
-
-# define data directories depending on sample information
-bidsDir="/RichardsonLab/preprocessedData/${study}"
-derivDir="${bidsDir}/derivatives"
+if [ ! ${2##*.} == "txt" ]
+then
+	echo
+	echo "The list of participants was not found."
+	echo "The script must be submitted with (1) a configuration file name and (2) a subject-run list as in the example below."
+	echo
+	echo "./run_tedana.sh config-pixar_mind-body.tsv open-pixar_subjs.txt"
+	echo	
+	# end script and show full usage documentation	
+	Usage
+fi
 
 # define directories
 projDir=`cat ../../PATHS.txt`
 singularityDir="${projDir}/singularity_images"
 codeDir="${projDir}/scripts/04.fmriprep"
 
+# define config file and subjects from files passed in script call
+config=${projDir}/$1
+subjs=$(cat $2 | awk '{print $1}')
+
+# define data directories depending on study information
+bidsDir=$(awk -F'\t' '$1=="bidsDir"{print $2}' "$config")
+derivDir=$(awk -F'\t' '$1=="derivDir"{print $2}' "$config")
+
+# extract preprocessing relevant values from config file
+sessions=$(awk -F'\t' '$1=="sessions"{print $2}' "$config")
+
+# strip extra formatting if present
+bidsDir="${bidsDir%$'\r'}"
+derivDir="${derivDir%$'\r'}"
+sessions="${sessions%$'\r'}"
+
 # change the location of the singularity cache ($HOME/.singularity/cache by default, but limited space in this directory)
-export SINGULARITY_TMPDIR=${singularityDir}
-export SINGULARITY_CACHEDIR=${singularityDir}
+export APPTAINER_TMPDIR=${singularityDir}
+export APPTAINER_CACHEDIR=${singularityDir}
 unset PYTHONPATH
 
 # run singularity to submit tedana script
@@ -92,6 +107,8 @@ while read p
 do
 	sub=` basename ${p} `
 	
+	echo ${sub}
+	
 	# define subject derivatives directory depending on whether data are organized in session folders
 	if [[ ${sessions} == 'yes' ]]
 	then
@@ -109,21 +126,23 @@ do
 	# for each task
 	for t in ${tasks}
 	do
-		echo
 		echo "Normalizing ${t} tedana outputs for ${sub}"
-		echo
 		
 		# grab denoised and transform files
 		denoised_img=${subDir_deriv}/func/tedana/${t}/*_desc-denoised_bold.nii.gz
 		reference_img=${subDir_deriv}/func/*${t}*MNI152NLin2009cAsym*_boldref.nii.gz
 		native_T1w_transform=${subDir_deriv}/func/*${t}*from-boldref_to-T1w_mode-image_desc-coreg_xfm.txt
 		
+		# grab dilated mask file
+		dilated_mask=${subDir_deriv}/func/tedana/${t}/*_desc-dilated_brain_mask.nii.gz
+		
 		# grab combined mask file
-		combined_mask=${subDir_deriv}/func/tedana/${t}/*_space-T1w_desc-gmwmbold_mask.nii.gz
+		#combined_mask=${subDir_deriv}/func/tedana/${t}/*_space-T1w_desc-gmwmbold_mask.nii.gz
 		
 		# define output files
 		normalized_img=${subDir_deriv}/func/tedana/${t}/${sub}_task-${t}_space-MNI152NLin2009cAsym_desc-denoised_bold.nii.gz
-		normalized_mask=${subDir_deriv}/func/tedana/${t}/${sub}_task-${t}_space-MNI152NLin2009cAsym_desc-gmwmbold_mask.nii.gz
+		#normalized_mask=${subDir_deriv}/func/tedana/${t}/${sub}_task-${t}_space-MNI152NLin2009cAsym_desc-gmwmbold_mask.nii.gz
+		normalized_mask=${subDir_deriv}/func/tedana/${t}/${sub}_task-${t}_space-MNI152NLin2009cAsym_desc-dilated_brain_mask.nii.gz
 		
 		# normalize tedana denoised data to MNI space
 		singularity exec -C -B /RichardsonLab:/RichardsonLab -B ${projDir}:${projDir}	\
@@ -140,7 +159,7 @@ do
 		singularity exec -C -B /RichardsonLab:/RichardsonLab -B ${projDir}:${projDir}	\
 		${singularityDir}/fmriprep-24.0.0.simg 											\
 		antsApplyTransforms -d 3 														\
-							-i ${combined_mask} 										\
+							-i ${dilated_mask} 											\
 							-r ${reference_img}											\
 							-o ${normalized_mask}										\
 							-n NearestNeighbor											\
@@ -148,4 +167,4 @@ do
 							   ${T1w_MNI_transform} 	
 	done
 	
-done <$1
+done <$2

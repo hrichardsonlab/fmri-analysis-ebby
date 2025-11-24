@@ -7,18 +7,19 @@
 #	https://bids-specification.readthedocs.io/en/stable/modality-agnostic-files.html#scans-file
 ################################################################################
 
-# usage documentation - shown if no text file is provided
+# usage documentation
 Usage() {
 	echo
+	echo
 	echo "Usage:"
-	echo "./generate_scanfiles.sh <list of subjects>"
+	echo "./generate_scanfiles.sh <config file> <list of subjects>"
 	echo
 	echo "Example:"
-	echo "./generate_scanfiles.sh KMVPA_subjs.txt"
-	echo 
-	echo "KMVPA_subjs.txt is a file containing the participants to generate the scans.tsv file for:"
-	echo "001"
-	echo "002"
+	echo "./generate_scanfiles.sh config-awe_emo-phys.tsv RLABPILOT_subjs.txt"
+	echo
+	echo RLABPILOT_subjs.txt" is a file containing the participants to generate the scans.tsv file for:"
+	echo "sub-RLABPILOT01"
+	echo "sub-RLABPILOT02"
 	echo "..."
 	echo
 	echo
@@ -26,25 +27,58 @@ Usage() {
 	echo
 	exit
 }
-[ "$1" = "" ] && Usage
+[ "$1" = "" ] | [ "$2" = "" ] && Usage
 
-# indicate whether session folders are used (always 'yes' for EBC data)
-sessions='no'
+# check files passed in script call
+if [ ! ${1##*.} == "tsv" ]
+then
+	echo
+	echo "The configuration file was not found."
+	echo "The script must be submitted with (1) a configuration file name and (2) a subject list as in the example below."
+	echo
+	echo "./generate_scanfiles.sh config-awe_emo-phys.tsv RLABPILOT_subjs.txt"
+	echo	
+	# end script and show full usage documentation	
+	Usage
+fi
 
-# extract study name from list of subjects filename
-study=` basename $1 | cut -d '_' -f 1 `
+if [ ! ${2##*.} == "txt" ]
+then
+	echo
+	echo "The list of participants was not found."
+	echo "The script must be submitted with (1) a configuration file name and (2) a subject list as in the example below."
+	echo
+	echo "./generate_scanfiles.sh config-awe_emo-phys.tsv RLABPILOT_subjs.txt"
+	echo	
+	# end script and show full usage documentation	
+	Usage
+fi
+
+# define directories
+projDir=`cat ../../PATHS.txt`
+singularityDir="${projDir}/singularity_images"
+
+# define config file and subjects from files passed in script call
+config=${projDir}/$1
+subjs=$(cat $2 | awk '{print $1}')
 
 # define data directories depending on study information
-bidsDir="/RichardsonLab/preprocessedData/${study}"
-derivDir="${bidsDir}/derivatives"
+bidsDir=$(awk -F'\t' '$1=="bidsDir"{print $2}' "$config")
+derivDir=$(awk -F'\t' '$1=="derivDir"{print $2}' "$config")
+sessions=$(awk -F'\t' '$1=="sessions"{print $2}' "$config")
+
+# strip extra formatting if present
+bidsDir="${bidsDir%$'\r'}"
+derivDir="${derivDir%$'\r'}"
+sessions="${sessions%$'\r'}"
 
 # print confirmation of study and directory
-echo 'Generating scans.tsv files for' ${study} 'data in' ${derivDir}
+echo 'Generating scans.tsv files for data in' ${derivDir}
 
 # iterate over subjects
 while read p
 do
-	sub=$(echo ${p} |awk '{print $1}')
+	sub=` basename ${p} `
 	
 	# define subject derivatives directory depending on whether data are organized in session folders
 	if [[ ${sessions} == 'yes' ]]
@@ -94,5 +128,5 @@ do
 	# copy scans.tsv to derivDir
 	cp ${subDir_bids}/${scan_file} ${subDir_deriv}/${scan_file}
 	
-done <$1
+done <$2
 

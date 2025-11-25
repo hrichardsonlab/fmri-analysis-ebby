@@ -74,6 +74,7 @@ subjs=$(cat $2 | awk '{print $1}')
 sharedDir=$(awk -F'\t' '$1=="sharedDir"{print $2}' "$config")
 bidsDir=$(awk -F'\t' '$1=="bidsDir"{print $2}' "$config")
 derivDir=$(awk -F'\t' '$1=="derivDir"{print $2}' "$config")
+scratchDir=/Scratch/RichardsonLab/fmriprep
 
 # extract preprocessing relevant values from config file
 multiecho=$(awk -F'\t' '$1=="multiecho"{print $2}' "$config")
@@ -93,13 +94,18 @@ then
 	mkdir -p ${derivDir}
 fi
 
+if [ ! -d ${scratchDir} ]
+then 
+	mkdir -p ${scratchDir}
+fi
+
 # change the location of the singularity cache ($HOME/.singularity/cache by default, but limited space in this directory)
-export SINGULARITY_TMPDIR=${singularityDir}
-export SINGULARITY_CACHEDIR=${singularityDir}
+export APPTAINER_TMPDIR=${singularityDir}
+export APPTAINER_CACHEDIR=${singularityDir}
 unset PYTHONPATH
 
 # prepare some writeable bind-mount points
-export SINGULARITYENV_TEMPLATEFLOW_HOME=${singularityDir}/fmriprep/.cache/templateflow
+export APPTAINERENV_TEMPLATEFLOW_HOME=${singularityDir}/fmriprep/.cache/templateflow
 
 # display subjects
 echo
@@ -116,7 +122,7 @@ do
 	echo
 	
 	# make output subject derivatives directory
-	mkdir -p ${derivDir}/${sub}
+	mkdir -p ${scratchDir}/${sub}
 	
 	# run fmriprep depending on whether data are multi-echo
 	if [[ "${multiecho}" == "yes" ]]
@@ -124,9 +130,9 @@ do
 		echo "Data were aquired with a multi-echo sequence. Running multi-echo fMRIPrep command..."
 		
 		# run singularity
-		singularity run -B /RichardsonLab:/RichardsonLab,${singularityDir}:/opt/templateflow	\
+		singularity run -B /RichardsonLab:/RichardsonLab,/Scratch:/Scratch,${singularityDir}:/opt/templateflow	\
 		${singularityDir}/fmriprep-24.0.0.simg													\
-		${bidsDir} ${derivDir}																	\
+		${bidsDir} ${scratchDir}																\
 		participant																				\
 		--participant-label ${sub}																\
 		--skip_bids_validation																	\
@@ -139,18 +145,18 @@ do
 		--me-output-echos																		\
 		--output-space MNI152NLin2009cAsym:res-2 T1w											\
 		--return-all-components																	\
-		--derivatives ${derivDir}																\
+		--derivatives ${scratchDir}																\
 		--stop-on-first-crash																	\
 		-w ${singularityDir}																	\
-		--fs-license-file ${license}  > ${derivDir}/${sub}/log_fmriprep_${sub}.txt
+		--fs-license-file ${license}  > ${scratchDir}/${sub}/log_fmriprep_${sub}.txt
 	# if data were not acquired with multiecho sequence
 	else
 		echo "Data were not acquired with a multi-echo sequence. Running default fMRIPrep command..."
 		
 		# run singularity
-		singularity run -B /RichardsonLab:/RichardsonLab,${singularityDir}:/opt/templateflow	\
+		singularity run -B /RichardsonLab:/RichardsonLab,/Scratch:/Scratch,${singularityDir}:/opt/templateflow	\
 		${singularityDir}/fmriprep-24.0.0.simg													\
-		${bidsDir} ${derivDir}																	\
+		${bidsDir} ${scratchDir}																\
 		participant																				\
 		--participant-label ${sub}																\
 		--skip_bids_validation																	\
@@ -161,17 +167,19 @@ do
 		--dvars-spike-threshold 1.5																\
 		--output-space MNI152NLin2009cAsym:res-2 T1w											\
 		--return-all-components																	\
-		--derivatives ${derivDir}																\
+		--derivatives ${scratchDir}																\
 		--stop-on-first-crash																	\
 		-w ${singularityDir}																	\
-		--fs-license-file ${license}  > ${derivDir}/${sub}/log_fmriprep_${sub}.txt
+		--fs-license-file ${license}  > ${scratchDir}/${sub}/log_fmriprep_${sub}.txt
 	fi
 	
 	# move subject report and freesurfer output files to appropriate directories
-	mv ${derivDir}/*dseg.tsv ${derivDir}/sourcedata/freesurfer
-	#mv ${derivDir}/${sub}.html ${derivDir}/${sub}
+	mv ${scratchDir}/*dseg.tsv ${scratchDir}/sourcedata/freesurfer
+	mv ${scratchDir}/${sub}.html ${scratchDir}/${sub}
 	
-	# give other users permissions to created files
-	#chmod -R a+wrx ${derivDir}/${sub}
+	# move files from scratch directory to derivatives directory
+	mv ${scratchDir}/${sub} ${derivDir}
+	mv ${scratchDir}/logs ${derivDir}
+	mv ${scratchDir}/sourcedata ${derivDir}
 
 done <$2

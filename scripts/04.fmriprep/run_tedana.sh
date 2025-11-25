@@ -107,6 +107,7 @@ while read p
 do
 	sub=` basename ${p} `
 	
+	echo
 	echo ${sub}
 	
 	# define subject derivatives directory depending on whether data are organized in session folders
@@ -120,51 +121,68 @@ do
 	# extract task names
     tasks=`ls -d ${subDir_deriv}/func/tedana/* | sed -r 's/^.+\///'`
 		
-    # grab normalized anat transform file
-	T1w_MNI_transform=${subDir_deriv}/anat/*from-T1w_to-MNI152NLin2009cAsym*mode-image_xfm.h5
+    # grab normalized anat transform file	
+	T1w_to_MNI=${subDir_deriv}/anat/*from-T1w_to-MNI152NLin2009cAsym*xfm.h5
+	
+	# grab T1w image in T1w native and MNI space
+	T1w_native_img=${subDir_deriv}/anat/*desc-preproc_T1w.nii.gz
+	T1w_MNI_img=${subDir_deriv}/anat/*space-MNI152NLin2009cAsym*desc-preproc_T1w.nii.gz
 	
 	# for each task
 	for t in ${tasks}
 	do
-		echo "Normalizing ${t} tedana outputs for ${sub}"
+		echo "normalising ${t} tedana outputs"
+		
+		# move denoised file (in bold space) to main func directory
+		mv ${subDir_deriv}/func/tedana/${t}/*_desc-denoised_bold.nii.gz ${subDir_deriv}/func
 		
 		# grab denoised and transform files
-		denoised_img=${subDir_deriv}/func/tedana/${t}/*_desc-denoised_bold.nii.gz
-		reference_img=${subDir_deriv}/func/*${t}*MNI152NLin2009cAsym*_boldref.nii.gz
-		native_T1w_transform=${subDir_deriv}/func/*${t}*from-boldref_to-T1w_mode-image_desc-coreg_xfm.txt
-		
-		# grab dilated mask file
-		dilated_mask=${subDir_deriv}/func/tedana/${t}/*_desc-dilated_brain_mask.nii.gz
+		denoised_img=${subDir_deriv}/func/*${t}_desc-denoised_bold.nii.gz
+		bold_to_T1w=${subDir_deriv}/func/*${t}*from-boldref_to-T1w*_xfm.txt
 		
 		# grab combined mask file
-		#combined_mask=${subDir_deriv}/func/tedana/${t}/*_space-T1w_desc-gmwmbold_mask.nii.gz
+		mask_T1w=${subDir_deriv}/func/${sub}_task-${t}_space-T1w_desc-gmwmbold_mask.nii.gz
 		
 		# define output files
-		normalized_img=${subDir_deriv}/func/tedana/${t}/${sub}_task-${t}_space-MNI152NLin2009cAsym_desc-denoised_bold.nii.gz
-		#normalized_mask=${subDir_deriv}/func/tedana/${t}/${sub}_task-${t}_space-MNI152NLin2009cAsym_desc-gmwmbold_mask.nii.gz
-		normalized_mask=${subDir_deriv}/func/tedana/${t}/${sub}_task-${t}_space-MNI152NLin2009cAsym_desc-dilated_brain_mask.nii.gz
+		denoised_T1w=${subDir_deriv}/func/${sub}_task-${t}_space-T1w_desc-denoised_bold.nii.gz
+		denoised_MNI=${subDir_deriv}/func/${sub}_task-${t}_space-MNI152NLin2009cAsym_desc-denoised_bold.nii.gz
+		mask_MNI=${subDir_deriv}/func/${sub}_task-${t}_space-MNI152NLin2009cAsym_desc-gmwmbold_mask.nii.gz
 		
-		# normalize tedana denoised data to MNI space
+		# STEP 1: move denoised file from bold to T1w space
+		echo "...transforming denoised file from BOLD to T1w space..."
 		singularity exec -C -B /RichardsonLab:/RichardsonLab -B ${projDir}:${projDir}	\
-		${singularityDir}/fmriprep-24.0.0.simg 											\
-		antsApplyTransforms -e 3 														\
-							-i ${denoised_img} 											\
-							-r ${reference_img}											\
-							-o ${normalized_img}										\
-							-n LanczosWindowedSinc										\
-							-t ${native_T1w_transform}									\
-							   ${T1w_MNI_transform} 											
-							
-		# normalize combined grey matter, white matter, bold mask to MNI space
+		${singularityDir}/fmriprep-24.0.0.simg											\
+		antsApplyTransforms -e 3														\
+			-i ${denoised_img}															\
+			-r ${T1w_native_img}														\
+			-o ${denoised_T1w}															\
+			-n LanczosWindowedSinc														\
+			-t ${bold_to_T1w}
+		
+		# STEP 2: move denoised file from bold to MNI space
+		echo "...transforming denoised file from BOLD to MNI space..."
 		singularity exec -C -B /RichardsonLab:/RichardsonLab -B ${projDir}:${projDir}	\
-		${singularityDir}/fmriprep-24.0.0.simg 											\
-		antsApplyTransforms -d 3 														\
-							-i ${dilated_mask} 											\
-							-r ${reference_img}											\
-							-o ${normalized_mask}										\
-							-n NearestNeighbor											\
-							-t ${native_T1w_transform}									\
-							   ${T1w_MNI_transform} 	
+		${singularityDir}/fmriprep-24.0.0.simg											\
+		antsApplyTransforms -e 3														\
+			-i ${denoised_img}															\
+			-r ${T1w_MNI_img}															\
+			-o ${denoised_MNI}															\
+			-n LanczosWindowedSinc														\
+			-t ${bold_to_T1w}															\
+			   ${T1w_to_MNI}
+		
+		# STEP 3: move gmwmbold mask from T1w space to MNI space
+		echo "...transforming combined gray matter, white matter, bold mask from T1w to MNI space..."
+		singularity exec -C -B /RichardsonLab:/RichardsonLab -B ${projDir}:${projDir}	\
+		${singularityDir}/fmriprep-24.0.0.simg											\
+		antsApplyTransforms -e 3														\
+			-i ${mask_T1w}																\
+			-r ${T1w_MNI_img}															\
+			-o ${mask_MNI}																\
+			-n NearestNeighbor															\
+			-t ${T1w_to_MNI}
+
 	done
 	
 done <$2
+
